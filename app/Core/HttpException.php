@@ -1,0 +1,15 @@
+<?php
+namespace App\Core;
+
+defined('APP_ROOT') || exit;
+
+final class HttpException extends \RuntimeException
+{
+    public int $status;
+
+    public function __construct(int $status, string $message = '')
+    {
+        parent::__construct($message);
+        $this->status = $status;
+    }
+}

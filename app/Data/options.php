@@ -1,0 +1,88 @@
+<?php
+defined('APP_ROOT') || exit;
+
+return [
+    'gender' => [
+        'man'       => 'Man',
+        'woman'     => 'Woman',
+        'nonbinary' => 'Non-binary',
+    ],
+    'interested_in' => [
+        'women'    => 'Women',
+        'men'      => 'Men',
+        'everyone' => 'Everyone',
+    ],
+    'looking_for' => [
+        'long_term'      => 'Long-term partner',
+        'marriage'       => 'Marriage',
+        'long_term_open' => 'Long-term, open to short',
+        'short_term'     => 'Something casual',
+        'friends'        => 'New friends',
+        'figuring_out'   => 'Still figuring it out',
+    ],
+    'religion' => [
+        'Hindu', 'Muslim', 'Sikh', 'Christian', 'Jain', 'Buddhist', 'Parsi', 'Jewish',
+        'Spiritual', 'Agnostic', 'Atheist', 'Other',
+    ],
+    'languages' => [
+        'Hindi', 'English', 'Bengali', 'Marathi', 'Telugu', 'Tamil', 'Gujarati', 'Urdu', 'Kannada',
+        'Odia', 'Malayalam', 'Punjabi', 'Assamese', 'Konkani', 'Kashmiri', 'Sindhi', 'Tulu', 'Maithili',
+    ],
+    'drinking' => [
+        'never'     => "Doesn't drink",
+        'socially'  => 'Drinks socially',
+        'regularly' => 'Drinks often',
+        'sober'     => 'Sober',
+    ],
+    'smoking' => [
+        'never'     => "Doesn't smoke",
+        'socially'  => 'Smokes socially',
+        'regularly' => 'Smokes',
+        'quitting'  => 'Trying to quit',
+    ],
+    'diet' => [
+        'vegetarian'     => 'Vegetarian',
+        'eggetarian'     => 'Eggetarian',
+        'non_vegetarian' => 'Non-vegetarian',
+        'vegan'          => 'Vegan',
+        'jain'           => 'Jain food',
+    ],
+    'report_reasons' => [
+        'fake_profile'  => 'Fake profile or catfish',
+        'inappropriate' => 'Inappropriate photos or messages',
+        'harassment'    => 'Harassment or threats',
+        'scam'          => 'Scam, money requests or spam',
+        'underage'      => 'Might be under 18',
+        'offline'       => 'Bad behaviour offline',
+        'other'         => 'Something else',
+    ],
+    'interests' => [
+        'Travel', 'Road trips', 'Mountains', 'Beaches', 'Trekking', 'Camping',
+        'Music', 'Indie music', 'Bollywood', 'Classical music', 'Concerts', 'Singing', 'Guitar', 'Dancing',
+        'Movies', 'Netflix', 'K-dramas', 'Anime', 'Stand-up comedy', 'Theatre', 'Podcasts',
+        'Cricket', 'Football', 'Badminton', 'Formula 1', 'Gym', 'Yoga', 'Running', 'Cycling', 'Swimming', 'Chess',
+        'Cooking', 'Baking', 'Street food', 'Fine dining', 'Coffee', 'Chai', 'Wine', 'Craft beer',
+        'Reading', 'Writing', 'Poetry', 'Art', 'Sketching', 'Photography', 'Museums', 'Architecture',
+        'Startups', 'Tech', 'Investing', 'Gaming', 'Board games', 'Astronomy',
+        'Fashion', 'Thrifting', 'Skincare', 'Interior design', 'Gardening',
+        'Dogs', 'Cats', 'Meditation', 'Spirituality', 'Volunteering', 'Learning languages', 'Bikes',
+    ],
+    'prompts' => [
+        'A perfect Sunday looks like',
+        'My go-to chai order',
+        'The way to win me over is',
+        "I'm weirdly attracted to",
+        'Two truths and a lie',
+        "We'll get along if",
+        'The best trip I have taken',
+        'Green flags I look for',
+        'My simple pleasures',
+        'I geek out on',
+        'Unpopular opinion',
+        "Don't hate me if I",
+        'My love language is',
+        'First date idea',
+        'A shower thought I recently had',
+        'I am looking for',
+    ],
+];
