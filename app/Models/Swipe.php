@@ -6,6 +6,7 @@ defined('APP_ROOT') || exit;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\Settings;
+use App\Services\Push;
 
 final class Swipe
 {
@@ -42,6 +43,14 @@ final class Swipe
             if ($theyLiked) {
                 $match = MatchModel::create($myId, $targetId);
             }
+        }
+
+        if ($match) {
+            Push::notify($targetId, 'match', 'New match', "You and {$me['first_name']} like each other. Say hi!", '/chat/' . $match['id']);
+        } elseif ($action === 'superlike') {
+            Push::notify($targetId, 'like', 'You got a Super Like', 'Someone really wants to meet you. See who in Likes.', '/likes');
+        } elseif ($action === 'like') {
+            Push::notify($targetId, 'like', 'Someone likes you', 'See who it is in Likes. It is free, always.', '/likes', 1800);
         }
 
         return ['match' => $match, 'remaining' => self::remaining($myId)];

@@ -20,6 +20,7 @@ final class SafetyController extends Controller
         }
         Report::create((int) $me['id'], (int) $target['id'], Request::str('reason'), Request::str('details'));
         Block::add((int) $me['id'], (int) $target['id']);
+        Report::autoHide((int) $target['id']);
         return json(['ok' => true, 'message' => 'Thanks for telling us. Our team will review this.']);
     }
 

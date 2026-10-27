@@ -1,5 +1,6 @@
 <?php defined('APP_ROOT') || exit; ?>
 <header class="appbar"><div class="appbar-inner"><h1>Likes</h1></div></header>
+<?= partial('partials/push-card') ?>
 <?php if (!$people): ?>
     <div class="empty">
         <?= partial('partials/art', ['name' => 'likes']) ?>

@@ -1,7 +1,7 @@
 <?php defined('APP_ROOT') || exit; ?>
 <div class="profile-view" data-profile="<?= (int) $card['id'] ?>" data-name="<?= e($card['name']) ?>">
     <header class="appbar" style="position:absolute;left:0;right:0;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:5"><div class="appbar-inner">
-        <a href="javascript:history.length>1?history.back():location.assign('/likes')" class="icon-btn" style="background:rgba(0,0,0,.4);color:#fff" aria-label="Back"><?= icon('back', 24) ?></a>
+        <a href="/likes" data-back class="icon-btn" style="background:rgba(0,0,0,.4);color:#fff" aria-label="Back"><?= icon('back', 24) ?></a>
     </div></header>
     <div style="max-width:560px;margin:0 auto;position:relative">
         <?php if ($theyLiked && !$match): ?>

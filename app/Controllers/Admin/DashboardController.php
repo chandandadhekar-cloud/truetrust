@@ -98,10 +98,13 @@ final class DashboardController extends AdminController
             ['max_allowed_packet', round((int) DB::value('SELECT @@max_allowed_packet') / 1048576) . ' MB', (int) DB::value('SELECT @@max_allowed_packet') >= 4 * 1048576],
             ['Database size', ($dbSize ?? 0) . ' MB', true],
             ['Stored photos', ($photoSize ?? 0) . ' MB', true],
+            ['Push notifications', \App\Services\Push::publicKey() !== '' ? 'Ready (VAPID keys created)' : 'Unavailable: OpenSSL EC support missing', \App\Services\Push::publicKey() !== ''],
+            ['cURL (push delivery)', function_exists('curl_init') ? 'Installed' : 'Missing: using slower fallback', function_exists('curl_init')],
             ['Server time', date('j M Y, g:i A T'), true],
         ];
         $migrations = DB::all('SELECT name, ran_at FROM migrations ORDER BY id DESC');
-        return $this->render('system', ['title' => 'Health', 'checks' => $checks, 'migrations' => $migrations]);
+        $errors = DB::all('SELECT * FROM error_logs ORDER BY id DESC LIMIT 50');
+        return $this->render('system', ['title' => 'Health', 'checks' => $checks, 'migrations' => $migrations, 'errors' => $errors]);
     }
 
     private function bytes(string $v): int

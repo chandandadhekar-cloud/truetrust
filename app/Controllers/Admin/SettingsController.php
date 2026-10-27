@@ -22,6 +22,7 @@ final class SettingsController extends AdminController
     private const NUMBERS = [
         'min_age' => [18, 30], 'max_photos' => [1, 9], 'daily_like_limit' => [0, 10000],
         'daily_superlike_limit' => [0, 1000], 'message_max_length' => [100, 5000], 'smtp_port' => [1, 65535],
+        'auto_hide_reports' => [0, 50],
     ];
 
     public function index(): string

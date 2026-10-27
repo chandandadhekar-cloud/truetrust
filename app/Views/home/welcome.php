@@ -5,8 +5,8 @@
         <a href="/login" class="btn btn-ghost btn-sm">Sign in</a>
     </div>
 
-    <div class="welcome-hero">
-        <div class="stack-preview" aria-hidden="true">
+    <div class="welcome-art">
+            <div class="stack-preview" aria-hidden="true">
             <div class="sp sp-1">
                 <svg class="sp-art" viewBox="0 0 116 156" preserveAspectRatio="xMidYMid slice"><circle cx="58" cy="70" r="34" fill="#FFD9A8" opacity=".9"/><path d="M0 104h116v52H0z" fill="#C2304A" opacity=".35"/><path d="M-6 112c22-10 44-10 64 0s44 10 64 0v44H-6z" fill="#B92D47" opacity=".55"/></svg>
                 <span>Ananya, 26<i>Pune</i></span>
@@ -21,6 +21,9 @@
             </div>
             <div class="sp-seal"><?= partial('partials/logo') ?></div>
         </div>
+    </div>
+
+    <div class="welcome-hero">
         <h1>Dating,<br>minus the <em>paywall.</em></h1>
         <p class="lede">See who likes you, send unlimited messages and meet people across India. Everything is free, for everyone, always.</p>
 
@@ -35,7 +38,7 @@
             </div>
             <div class="welcome-point">
                 <div class="pt-ico"><?= icon('shield', 20) ?></div>
-                <div><b>Moderated for safety</b><span>Reports are reviewed by real people.</span></div>
+                <div><b>Verified and moderated</b><span>Selfie checks, and real people review every report.</span></div>
             </div>
         </div>
     </div>
@@ -45,4 +48,9 @@
         <a href="/login" class="btn btn-outline btn-block">I already have an account</a>
         <p class="welcome-legal">By continuing you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>. 18+ only.</p>
     </div>
+
+    <footer class="welcome-foot">
+        <span>&copy; <?= date('Y') ?> <?= e(setting('site_name')) ?> · Made in India</span>
+        <nav><a href="/safety">Safety</a><a href="/guidelines">Guidelines</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+    </footer>
 </div>

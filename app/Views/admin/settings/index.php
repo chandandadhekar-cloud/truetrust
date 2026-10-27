@@ -39,6 +39,7 @@ $num = static fn (string $key, string $label, string $hint = '') => '<label clas
         <?= csrf_field() ?><input type="hidden" name="section" value="safety">
         <div class="panel-h"><h2>Message safety</h2><div class="actions"><button class="btn btn-dark btn-xs">Save</button></div></div>
         <div class="panel-b">
+            <?= $num('auto_hide_reports', 'Auto-hide a profile after reports from this many different members', '0 turns it off. Hidden profiles stay hidden until you unhide them.') ?>
             <label class="field"><span>Flag messages containing (one per line)</span><textarea class="textarea mono" name="flag_keywords" style="min-height:200px"><?= e($s['flag_keywords']) ?></textarea>
             <p class="hint">Phone numbers, email addresses and links are always flagged. Flagged messages are still delivered and appear in Flagged messages for review.</p></label>
         </div>

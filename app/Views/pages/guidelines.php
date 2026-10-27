@@ -15,5 +15,5 @@
     <h2>Nothing illegal</h2>
     <p>Don't use <?= e(setting('site_name')) ?> for anything illegal, including selling drugs or weapons.</p>
     <h2>Report problems</h2>
-    <p>If you see something that breaks these rules, report it. We review every report.</p>
+    <p>If you see something that breaks these rules, report it. We review every report. When several different members report the same profile, it is hidden from Discover until our team has reviewed it.</p>
 </article>

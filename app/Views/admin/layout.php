@@ -11,6 +11,7 @@ $nav = [
     ['Members', [
         ['/admin/users', 'All members', 'users', 0],
         ['/admin/seed', 'Seed profiles', 'sparkle', 0],
+        ['/admin/verifications', 'Verification', 'shield', $counts['verifications']],
         ['/admin/photos', 'Photo review', 'image', $counts['photos']],
     ]],
     ['Safety', [

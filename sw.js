@@ -1,5 +1,5 @@
 /* TrueTrust service worker: offline fallback, fast static assets, cached photos. */
-const VERSION = 'tt-v2';
+const VERSION = 'tt-v3';
 const STATIC = VERSION + '-static';
 const PHOTOS = VERSION + '-photos';
 const OFFLINE = '/offline';
@@ -71,4 +71,44 @@ self.addEventListener('fetch', (event) => {
   if (req.mode === 'navigate') {
     event.respondWith(fetch(req).catch(() => caches.match(OFFLINE)));
   }
+});
+
+/* ---------- Push notifications ---------- */
+self.addEventListener('push', (event) => {
+  event.waitUntil((async () => {
+    let items = [];
+    try {
+      const res = await fetch('/api/push/pending', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+      if (res.ok) items = (await res.json()).items || [];
+    } catch (e) { /* offline or signed out: fall through to a generic notice */ }
+
+    const base = { icon: '/assets/img/icon-192.png', badge: '/assets/img/badge-96.png' };
+    if (!items.length) {
+      return self.registration.showNotification('TrueTrust', { ...base, body: 'You have new activity.', tag: 'activity', data: { url: '/matches' } });
+    }
+    // One notification per destination (e.g. per chat), newest wins.
+    const seen = new Set();
+    const shown = [];
+    for (const n of items) {
+      if (seen.has(n.url) || shown.length >= 3) continue;
+      seen.add(n.url);
+      shown.push(self.registration.showNotification(n.title, { ...base, body: n.body, tag: n.url, renotify: true, data: { url: n.url } }));
+    }
+    return Promise.all(shown);
+  })());
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL((event.notification.data && event.notification.data.url) || '/discover', self.location.origin).href;
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const w of wins) {
+      if (new URL(w.url).origin === self.location.origin) {
+        await w.focus();
+        return w.navigate(url);
+      }
+    }
+    return self.clients.openWindow(url);
+  })());
 });

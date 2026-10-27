@@ -21,7 +21,8 @@ abstract class AdminController
                 "SELECT
                     (SELECT COUNT(*) FROM photos WHERE status = 'pending') AS photos,
                     (SELECT COUNT(*) FROM messages WHERE is_flagged = 1 AND is_removed = 0) AS flagged,
-                    (SELECT COUNT(*) FROM reports WHERE status = 'open') AS reports"
+                    (SELECT COUNT(*) FROM reports WHERE status = 'open') AS reports,
+                    (SELECT COUNT(*) FROM verification_requests WHERE status = 'pending') AS verifications"
             );
             $counts = array_map('intval', $row);
         }

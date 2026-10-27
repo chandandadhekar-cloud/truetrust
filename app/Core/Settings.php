@@ -22,6 +22,7 @@ final class Settings
         'daily_like_limit'       => '0',
         'daily_superlike_limit'  => '5',
         'message_max_length'     => '1000',
+        'auto_hide_reports'      => '3',
         'pwa_prompt'             => '1',
         'maintenance_mode'       => '0',
         'maintenance_message'    => 'We are making TrueTrust better. Back shortly.',

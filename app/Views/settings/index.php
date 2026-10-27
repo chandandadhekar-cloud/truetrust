@@ -14,6 +14,19 @@
         </label>
     </form>
 
+    <p class="group-title" id="notifications">Notifications</p>
+    <div class="group">
+        <div class="item"><?= icon('bell') ?><span style="flex:1">Push notifications<br><small class="muted" style="font-weight:500">On this device: <span data-push-status>…</span></small></span>
+            <button type="button" class="btn btn-primary btn-sm hidden" data-push-enable>Turn on</button></div>
+    </div>
+    <form method="post" action="/settings/notifications" class="group" data-autosubmit style="margin-top:12px">
+        <?= csrf_field() ?>
+        <?php foreach (['notify_matches' => ['New matches', 'heart'], 'notify_messages' => ['New messages', 'chat'], 'notify_likes' => ['New likes', 'star']] as $key => [$label, $ico]): ?>
+            <label class="item" style="cursor:pointer"><?= icon($ico) ?><span style="flex:1"><?= $label ?></span>
+                <span class="switch"><input type="checkbox" name="<?= $key ?>" value="1"<?= checked((bool) $me[$key]) ?>><span></span></span></label>
+        <?php endforeach; ?>
+    </form>
+
     <p class="group-title">Account</p>
     <div class="group">
         <div class="item"><?= icon('mail') ?>Email<span class="trail" style="max-width:60%;overflow:hidden;text-overflow:ellipsis"><?= e($me['email']) ?></span></div>
@@ -40,6 +53,12 @@
             <button class="btn btn-dark btn-sm">Update password</button>
         </form>
     </details>
+
+    <p class="group-title">Privacy</p>
+    <div class="group">
+        <a class="item" href="/settings/blocked"><?= icon('block') ?>Blocked people<span class="trail"><?= (int) $blockedCount ?><?= icon('next', 18) ?></span></a>
+        <a class="item" href="/verify-profile"><?= icon('verified') ?>Profile verification<span class="trail"><?= $me['is_verified'] ? 'Verified' : 'Not verified' ?><?= icon('next', 18) ?></span></a>
+    </div>
 
     <p class="group-title">Help & legal</p>
     <div class="group">

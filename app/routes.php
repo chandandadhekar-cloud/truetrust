@@ -64,8 +64,14 @@ return static function (Router $r): void {
             $r->post('/api/report', [C\SafetyController::class, 'report']);
             $r->post('/api/block', [C\SafetyController::class, 'block']);
             $r->get('/api/badges', [C\HomeController::class, 'badges']);
+            $r->post('/api/push/subscribe', [C\PushController::class, 'subscribe']);
+            $r->post('/api/push/unsubscribe', [C\PushController::class, 'unsubscribe']);
+            $r->get('/api/push/pending', [C\PushController::class, 'pending']);
+            $r->post('/settings/notifications', [C\PushController::class, 'preferences']);
 
             $r->get('/profile', [C\ProfileController::class, 'mine']);
+            $r->get('/verify-profile', [C\VerificationController::class, 'show']);
+            $r->post('/verify-profile', [C\VerificationController::class, 'submit']);
             $r->get('/profile/edit', [C\ProfileController::class, 'edit']);
             $r->post('/profile/edit', [C\ProfileController::class, 'update']);
             $r->get('/settings', [C\SettingsController::class, 'index']);
@@ -73,6 +79,8 @@ return static function (Router $r): void {
             $r->post('/settings/password', [C\SettingsController::class, 'password']);
             $r->post('/settings/email', [C\SettingsController::class, 'email']);
             $r->post('/settings/delete', [C\SettingsController::class, 'delete']);
+            $r->get('/settings/blocked', [C\SettingsController::class, 'blocked']);
+            $r->post('/settings/unblock/{id:\d+}', [C\SettingsController::class, 'unblock']);
         });
     });
 
@@ -87,6 +95,7 @@ return static function (Router $r): void {
         $r->get('', [A\DashboardController::class, 'index']);
 
         $r->get('/users', [A\UsersController::class, 'index']);
+        $r->get('/users/export', [A\UsersController::class, 'export'], ['owner']);
         $r->get('/users/new', [A\UsersController::class, 'create']);
         $r->post('/users/new', [A\UsersController::class, 'store']);
         $r->get('/users/{id:\d+}', [A\UsersController::class, 'show']);
@@ -107,6 +116,10 @@ return static function (Router $r): void {
 
         $r->get('/reports', [A\ReportsController::class, 'index']);
         $r->post('/reports/{id:\d+}', [A\ReportsController::class, 'resolve']);
+
+        $r->get('/verifications', [A\VerificationsController::class, 'index']);
+        $r->get('/verifications/{id:\d+}/selfie', [A\VerificationsController::class, 'selfie']);
+        $r->post('/verifications/{id:\d+}', [A\VerificationsController::class, 'review']);
 
         $r->get('/photos', [A\PhotosController::class, 'index']);
         $r->post('/photos/{id:\d+}', [A\PhotosController::class, 'moderate']);

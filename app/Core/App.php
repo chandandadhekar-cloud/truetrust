@@ -10,6 +10,10 @@ final class App
     public static function run(): void
     {
         self::securityHeaders();
+        if (Request::path() === '/healthz') {
+            self::health();
+            return;
+        }
         try {
             Session::start();
             Migrator::ensure();
@@ -36,11 +40,47 @@ final class App
             self::renderError($e->status, $e->getMessage());
         } catch (\PDOException $e) {
             error_log('DB error: ' . $e->getMessage());
+            self::record($e);
             self::renderError(503, Config::get('app.debug') ? $e->getMessage() : '');
         } catch (\Throwable $e) {
             error_log((string) $e);
+            self::record($e);
             self::renderError(500, Config::get('app.debug') ? $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() : '');
         }
+    }
+
+    /** Keeps a copy of unexpected errors in the database for the admin Health page. */
+    private static function record(\Throwable $e): void
+    {
+        try {
+            $file = str_replace(APP_ROOT, '', $e->getFile());
+            DB::insert('error_logs', [
+                'message'    => mb_substr(get_class($e) . ': ' . $e->getMessage(), 0, 1000),
+                'location'   => mb_substr($file . ':' . $e->getLine(), 0, 255),
+                'url'        => mb_substr(Request::method() . ' ' . ($_SERVER['REQUEST_URI'] ?? ''), 0, 255),
+                'user_id'    => Auth::id() ?: null,
+                'created_at' => now(),
+            ]);
+            if (random_int(1, 50) === 1) {
+                DB::query('DELETE FROM error_logs WHERE created_at < NOW() - INTERVAL 30 DAY');
+            }
+        } catch (\Throwable $ignored) {
+            // The database itself may be the problem; the PHP error log still has it.
+        }
+    }
+
+    /** Lightweight uptime check for monitoring services. */
+    public static function health(): void
+    {
+        header('Content-Type: application/json');
+        header('Cache-Control: no-store');
+        try {
+            $ok = (int) DB::value('SELECT 1') === 1;
+        } catch (\Throwable $e) {
+            $ok = false;
+        }
+        http_response_code($ok ? 200 : 503);
+        echo json_encode(['ok' => $ok, 'time' => date('c')]);
     }
 
     private static function middleware(string $name): void
@@ -122,6 +162,10 @@ final class App
         header('X-Frame-Options: SAMEORIGIN');
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(self), microphone=(), geolocation=(self)');
+        header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            . "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; "
+            . "frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'");
+        header('Cross-Origin-Opener-Policy: same-origin');
         if (Request::isHttps()) {
             header('Strict-Transport-Security: max-age=31536000');
         }

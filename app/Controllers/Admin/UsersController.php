@@ -48,6 +48,33 @@ final class UsersController extends AdminController
         return $this->render('users/index', ['title' => 'Members', 'users' => $users, 'photos' => $photos, 'p' => $p]);
     }
 
+    /** Streams the current member list (same filters as the table) as CSV. Owner only. */
+    public function export(): void
+    {
+        [$where, $params] = $this->filters();
+        AdminAuth::log('users.export', null, null, http_build_query($_GET));
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="truetrust-members-' . date('Y-m-d') . '.csv"');
+        header('Cache-Control: no-store');
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, ['ID', 'First name', 'Last name', 'Email', 'Gender', 'Age', 'City', 'State', 'Status', 'Type', 'Verified', 'Email confirmed', 'Onboarded', 'Joined', 'Last active']);
+        $st = DB::query(
+            "SELECT id, first_name, last_name, email, gender, dob, city, state, status, is_seed, is_verified, email_verified_at, onboarded_at, created_at, last_active_at
+             FROM users u WHERE {$where} ORDER BY id",
+            $params
+        );
+        while ($u = $st->fetch()) {
+            fputcsv($out, [
+                $u['id'], $u['first_name'], $u['last_name'], $u['email'], $u['gender'], $u['dob'] ? age($u['dob']) : '',
+                $u['city'], $u['state'], $u['status'], $u['is_seed'] ? 'Seed' : 'Real', $u['is_verified'] ? 'Yes' : 'No',
+                $u['email_verified_at'] ? 'Yes' : 'No', $u['onboarded_at'] ? 'Yes' : 'No', $u['created_at'], $u['last_active_at'],
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
+
     /** @return array{0:string,1:array} */
     private function filters(): array
     {

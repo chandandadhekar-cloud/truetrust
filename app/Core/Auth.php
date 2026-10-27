@@ -115,17 +115,26 @@ final class Auth
             self::setCookie('', time() - 3600);
             return;
         }
-        // Rotate the token on every use so a stolen cookie has a short shelf life.
-        DB::query('DELETE FROM remember_tokens WHERE id = ?', [$row['id']]);
         $status = DB::value('SELECT status FROM users WHERE id = ?', [$row['user_id']]);
         if ($status === null || $status === 'deleted') {
+            DB::query('DELETE FROM remember_tokens WHERE id = ?', [$row['id']]);
             self::setCookie('', time() - 3600);
             return;
         }
         Session::regenerate();
         Session::put('uid', (int) $row['user_id']);
         self::refresh();
-        self::issueRememberToken((int) $row['user_id']);
+
+        // Rotate tokens older than a day. The old one stays valid for two minutes,
+        // because an app launch fires several requests with the same cookie at once.
+        if (strtotime($row['created_at']) < time() - 86400 && strtotime($row['expires_at']) > time() + 300) {
+            DB::query('UPDATE remember_tokens SET expires_at = NOW() + INTERVAL 2 MINUTE WHERE id = ?', [$row['id']]);
+            self::issueRememberToken((int) $row['user_id']);
+        }
+        if (random_int(1, 50) === 1) {
+            DB::query('DELETE FROM remember_tokens WHERE expires_at < NOW()');
+            DB::query('DELETE FROM email_tokens WHERE expires_at < NOW() - INTERVAL 7 DAY');
+        }
     }
 
     private static function setCookie(string $value, int $expires): void

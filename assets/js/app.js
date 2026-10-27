@@ -174,6 +174,16 @@
     }
   }, true);
 
+  // Back buttons: return to the previous in-app page when there is one.
+  document.addEventListener('click', function (e) {
+    var back = e.target.closest('[data-back]');
+    if (back && document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) {
+      e.preventDefault();
+      history.back();
+    }
+    if (e.target.closest('[data-reload]')) location.reload();
+  });
+
   document.addEventListener('change', function (e) {
     var form = e.target.closest('form[data-autosubmit]');
     if (form) form.submit();
@@ -211,7 +221,8 @@
       '<p class="match-sub">You and ' + TT.esc(m.name) + ' like each other.</p>' +
       '<div class="match-faces">' + face(m.myPhoto, m.myName) + face(m.photo, m.name) + '</div>' +
       '<a class="btn btn-primary" href="/chat/' + m.id + '">Send ' + TT.esc(m.name) + ' a message</a>' +
-      '<button class="btn btn-ghost" data-close>Keep swiping</button>';
+      '<button class="btn btn-ghost" data-close>Keep swiping</button>' +
+      (TT.push && TT.push.state() === 'off' ? '<button class="btn btn-ghost btn-sm" data-push-enable style="margin-top:4px;opacity:.75">Get notified when ' + TT.esc(m.name) + ' replies</button>' : '');
     document.body.appendChild(el);
     var confetti = el.querySelector('.confetti');
     var colors = ['#E0435E', '#F2A33A', '#FFFFFF', '#FF8095', '#2F7DF6'];
@@ -361,6 +372,88 @@
   document.addEventListener('click', function (e) {
     if (e.target.closest('[data-install-open]')) showInstall(true);
   });
+
+  /* ---------- Push notifications ---------- */
+  var vapidMeta = document.querySelector('meta[name="vapid-key"]');
+  var vapid = vapidMeta ? vapidMeta.content : '';
+  var pushSupported = !!(vapid && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window);
+
+  function keyBytes(b64) {
+    var pad = '='.repeat((4 - b64.length % 4) % 4);
+    var raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    var out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  function syncSubscription(sub) {
+    return TT.api('/api/push/subscribe', { body: { endpoint: sub.endpoint } }).then(function () {
+      store.set('tt_push_synced', String(Date.now()));
+    });
+  }
+  TT.push = {
+    /** 'unsupported' | 'needs-install' | 'denied' | 'on' | 'off' */
+    state: function () {
+      if (isIOS && !standalone) return 'needs-install';
+      if (!pushSupported) return 'unsupported';
+      if (Notification.permission === 'denied') return 'denied';
+      return Notification.permission === 'granted' ? 'on' : 'off';
+    },
+    enable: function () {
+      var st = TT.push.state();
+      if (st === 'needs-install') {
+        TT.toast('On iPhone, install the app first, then turn on notifications from inside it.', 'info');
+        showInstall(true);
+        return Promise.resolve(false);
+      }
+      if (st === 'unsupported') { TT.toast("This browser can't show notifications.", 'error'); return Promise.resolve(false); }
+      if (st === 'denied') { TT.toast('Notifications are blocked. Allow them in your browser settings for this site.', 'error'); return Promise.resolve(false); }
+      return Notification.requestPermission().then(function (perm) {
+        if (perm !== 'granted') return false;
+        return navigator.serviceWorker.ready.then(function (reg) {
+          return reg.pushManager.getSubscription().then(function (sub) {
+            return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(vapid) });
+          });
+        }).then(syncSubscription).then(function () {
+          TT.toast("Notifications are on. We'll tell you about new matches and messages.", 'success');
+          refreshPushUi();
+          return true;
+        });
+      }).catch(function () {
+        TT.toast("Couldn't turn on notifications. Please try again.", 'error');
+        return false;
+      });
+    }
+  };
+  function refreshPushUi() {
+    var st = TT.push.state();
+    var dismissed = parseInt(store.get('tt_push_card') || '0', 10);
+    document.querySelectorAll('[data-push-card]').forEach(function (el) {
+      var show = (st === 'off' || st === 'needs-install') && !(dismissed && Date.now() - dismissed < 7 * 86400000);
+      el.classList.toggle('hidden', !show);
+    });
+    document.querySelectorAll('[data-push-status]').forEach(function (el) {
+      el.textContent = { on: 'On', off: 'Off', denied: 'Blocked in browser', unsupported: 'Not supported', 'needs-install': 'Install app first' }[st];
+    });
+    document.querySelectorAll('[data-push-enable]').forEach(function (el) {
+      el.classList.toggle('hidden', st === 'on' || st === 'unsupported');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-push-enable]')) { e.preventDefault(); TT.push.enable(); }
+    if (e.target.closest('[data-push-dismiss]')) { store.set('tt_push_card', String(Date.now())); refreshPushUi(); }
+  });
+  refreshPushUi();
+  // Keep the server's copy of this device's subscription fresh (endpoints can rotate).
+  // Permission already granted: make sure this device has a subscription the server knows about.
+  if (pushSupported && Notification.permission === 'granted') {
+    var last = parseInt(store.get('tt_push_synced') || '0', 10);
+    navigator.serviceWorker.ready.then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (sub) {
+        if (sub) return Date.now() - last > 86400000 ? syncSubscription(sub) : null;
+        return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(vapid) }).then(syncSubscription);
+      });
+    }).catch(function () {});
+  }
 
   var promptTimer = null;
   function maybePrompt() {

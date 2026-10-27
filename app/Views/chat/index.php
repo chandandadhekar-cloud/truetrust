@@ -1,5 +1,6 @@
 <?php defined('APP_ROOT') || exit; ?>
 <header class="appbar"><div class="appbar-inner"><h1>Chats</h1></div></header>
+<?= partial('partials/push-card') ?>
 <?php if (!$fresh && !$convos): ?>
     <div class="empty">
         <?= partial('partials/art', ['name' => 'chats']) ?>

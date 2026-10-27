@@ -178,6 +178,9 @@ final class User
     public static function softDelete(int $id): void
     {
         DB::query('DELETE FROM photos WHERE user_id = ?', [$id]);
+        DB::query('DELETE FROM push_subscriptions WHERE user_id = ?', [$id]);
+        DB::query('DELETE FROM notifications WHERE user_id = ?', [$id]);
+        DB::query("UPDATE verification_requests SET selfie = '' WHERE user_id = ?", [$id]);
         DB::query('UPDATE matches SET unmatched_at = NOW(), unmatched_by = ? WHERE (user_a = ? OR user_b = ?) AND unmatched_at IS NULL', [$id, $id, $id]);
         self::update($id, [
             'status'     => 'deleted',

@@ -3,7 +3,10 @@ $g = static fn ($k) => e($_GET[$k] ?? '');
 ?>
 <div class="ph">
     <div><h1>Members</h1><p>Search, review and manage every profile.</p></div>
-    <div class="actions"><a href="/admin/users/new" class="btn btn-dark"><?= icon('plus', 18) ?> New profile</a></div>
+    <div class="actions">
+        <?php if (App\Core\AdminAuth::isOwner()): ?><a href="/admin/users/export?<?= e(http_build_query($_GET)) ?>" class="btn btn-outline"><?= icon('download', 18) ?> Export CSV</a><?php endif; ?>
+        <a href="/admin/users/new" class="btn btn-dark"><?= icon('plus', 18) ?> New profile</a>
+    </div>
 </div>
 <div class="panel">
     <form class="filters" method="get">

@@ -1,7 +1,7 @@
 <?php defined('APP_ROOT') || exit; ?>
 <?= partial('pages/_bar', ['title' => $title]) ?>
 <article class="prose">
-    <p class="updated">Last updated 27 October 2026</p>
+    <p class="updated">Last updated 28 October 2026</p>
     <p>This policy explains what <?= e(setting('site_name')) ?> collects, why, and the choices you have. We wrote it to be read, not skimmed past.</p>
     <h2>What we collect</h2>
     <ul>
@@ -14,6 +14,10 @@
     <p>We only store the city you choose. If you use "current location", your device's position is used once to find the nearest city and is not stored. Other members see your city and an approximate distance, never your exact location.</p>
     <h2>Photos</h2>
     <p>Every uploaded photo is re-processed, which removes hidden metadata such as GPS location. Photos are only visible to signed-in members.</p>
+    <h2>Selfie verification</h2>
+    <p>If you choose to get verified, you take a selfie copying a pose we show you. A moderator compares it with your profile photos. The selfie is only visible to authorised moderators and is deleted as soon as a decision is made. Only the result (verified or not) is kept.</p>
+    <h2>Notifications</h2>
+    <p>If you turn on notifications, your browser gives us a delivery address for your device. Notifications sent through Apple's or Google's push services carry no message content; your device fetches the details directly from us. You can turn each type off in Settings, or turn them off completely in your browser.</p>
     <h2>Messages and moderation</h2>
     <p>Your messages are visible to you and your match. To protect members from scams, harassment and abuse, authorised <?= e(setting('site_name')) ?> moderators can review conversations, especially when a message is reported or automatically flagged (for example, requests for money or payment details). We only do this to enforce our guidelines and keep the platform safe.</p>
     <h2>How we use your information</h2>

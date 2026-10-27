@@ -7,6 +7,7 @@ use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\RateLimit;
 use App\Core\Settings;
+use App\Services\Push;
 
 final class Message
 {
@@ -38,6 +39,14 @@ final class Message
             'created_at'  => now(),
         ]);
         DB::query('UPDATE matches SET last_message_at = NOW() WHERE id = ?', [$match['id']]);
+
+        // Push the other person unless they are in the app right now.
+        $recipient = MatchModel::otherId($match, $senderId);
+        $active = DB::value('SELECT last_active_at > NOW() - INTERVAL 45 SECOND FROM users WHERE id = ?', [$recipient]);
+        if (!$active) {
+            $sender = (string) DB::value('SELECT first_name FROM users WHERE id = ?', [$senderId]);
+            Push::notify($recipient, 'message', $sender, mb_strimwidth($body, 0, 90, '…'), '/chat/' . $match['id'], 90);
+        }
         return DB::one('SELECT * FROM messages WHERE id = ?', [$id]);
     }
 

@@ -25,6 +25,8 @@ $circ = 2 * M_PI * 70;
 
     <?php if ($me['is_hidden']): ?>
         <div class="notice" style="margin-bottom:16px"><?= icon('eye-off', 20) ?><span>Your profile is paused, so new people can't see you. <a class="link" href="/settings">Turn it back on</a></span></div>
+    <?php elseif (!$me['is_verified']): ?>
+        <a href="/verify-profile" class="notice notice-brand" style="margin-bottom:16px"><?= icon('verified', 20) ?><span>Get the blue badge. Verified profiles get more matches. <b class="link">Verify now</b></span></a>
     <?php elseif ($complete < 70): ?>
         <div class="notice notice-brand" style="margin-bottom:16px"><?= icon('sparkle', 20) ?><span>Complete profiles get up to 3× more likes. Add photos, prompts and a few basics.</span></div>
     <?php endif; ?>
@@ -37,6 +39,7 @@ $circ = 2 * M_PI * 70;
 
     <p class="group-title">Account</p>
     <div class="group">
+        <a class="item" href="/verify-profile"><?= icon('verified') ?>Get verified<span class="trail"><?= $me['is_verified'] ? 'Verified' : 'Not yet' ?><?= icon('next', 18) ?></span></a>
         <a class="item" href="/settings"><?= icon('settings') ?>Settings<span class="trail"><?= icon('next', 18) ?></span></a>
         <a class="item" href="/safety"><?= icon('shield') ?>Safety centre<span class="trail"><?= icon('next', 18) ?></span></a>
         <button class="item" data-install-open><?= icon('download') ?>Install the app<span class="trail"><?= icon('next', 18) ?></span></button>

@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /$
+Allow: /signup
+Allow: /login
+Allow: /terms
+Allow: /privacy
+Allow: /safety
+Allow: /guidelines
+Disallow: /admin
+Disallow: /api/
+Disallow: /photo/
+Disallow: /u/
+Disallow: /chat/
+Disallow: /onboarding/
+
+Sitemap: https://truetrust.online/sitemap.xml

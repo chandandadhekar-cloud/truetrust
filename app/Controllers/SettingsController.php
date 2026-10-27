@@ -4,6 +4,8 @@ namespace App\Controllers;
 defined('APP_ROOT') || exit;
 
 use App\Core\Auth;
+use App\Core\DB;
+use App\Models\Photo;
 use App\Core\Request;
 use App\Core\Settings;
 use App\Models\User;
@@ -13,7 +15,33 @@ final class SettingsController extends Controller
 {
     public function index(): string
     {
-        return view('settings/index', ['title' => 'Settings', 'nav' => true, 'me' => $this->me()]);
+        $me = $this->me();
+        $blocked = (int) DB::value('SELECT COUNT(*) FROM blocks WHERE user_id = ?', [$me['id']]);
+        return view('settings/index', ['title' => 'Settings', 'nav' => true, 'me' => $me, 'blockedCount' => $blocked]);
+    }
+
+    public function blocked(): string
+    {
+        $me = $this->me();
+        $people = DB::all(
+            'SELECT u.id, u.first_name, u.dob, u.city, b.created_at FROM blocks b JOIN users u ON u.id = b.blocked_id
+             WHERE b.user_id = ? ORDER BY b.created_at DESC',
+            [$me['id']]
+        );
+        return view('settings/blocked', [
+            'title'  => 'Blocked',
+            'nav'    => true,
+            'people' => $people,
+            'photos' => Photo::idsForMany(array_column($people, 'id')),
+        ]);
+    }
+
+    public function unblock(int $id): void
+    {
+        $me = $this->me();
+        DB::query('DELETE FROM blocks WHERE user_id = ? AND blocked_id = ?', [$me['id'], $id]);
+        flash('success', 'Unblocked. You may see each other in Discover again.');
+        redirect('/settings/blocked');
     }
 
     public function preferences(): void
