@@ -1,7 +1,6 @@
 <?php
 /**
- * Copy this file to config.php and fill in real values.
- * config.php is git-ignored so credentials never land in the repository.
+ * Application configuration.
  */
 return [
     'db' => [
@@ -9,7 +8,7 @@ return [
         'port'    => 3306,
         'name'    => 'sql_truetrust_online',
         'user'    => 'sql_truetrust_online',
-        'pass'    => '',
+        'pass'    => '9a2f9c9d4b6d8',
         'charset' => 'utf8mb4',
     ],
 ];
