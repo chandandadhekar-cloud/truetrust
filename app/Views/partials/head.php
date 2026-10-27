@@ -18,6 +18,7 @@ $pageTitle = isset($title) && $title !== '' ? $title . ' · ' . $siteName : $sit
 <meta property="og:image" content="<?= e(url('/assets/img/og.png')) ?>">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/assets/img/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/img/favicon-48.png" sizes="48x48" type="image/png">
 <link rel="icon" href="/assets/img/icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">

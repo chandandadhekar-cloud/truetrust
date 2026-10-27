@@ -1,5 +1,5 @@
 /* TrueTrust service worker: offline fallback, fast static assets, cached photos. */
-const VERSION = 'tt-v1';
+const VERSION = 'tt-v2';
 const STATIC = VERSION + '-static';
 const PHOTOS = VERSION + '-photos';
 const OFFLINE = '/offline';

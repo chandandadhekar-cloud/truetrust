@@ -311,3 +311,13 @@ function find_city(string $name): ?array
     }
     return null;
 }
+
+/** Brand wordmark: "TrueTrust" renders as True + italic rose "Trust". */
+function wordmark(): string
+{
+    $name = (string) setting('site_name');
+    if (preg_match('/^(\p{Lu}\p{Ll}+)(\p{Lu}.*)$/u', $name, $m)) {
+        return '<span class="brand-word">' . e($m[1]) . '<i>' . e($m[2]) . '</i></span>';
+    }
+    return '<span class="brand-word">' . e($name) . '</span>';
+}

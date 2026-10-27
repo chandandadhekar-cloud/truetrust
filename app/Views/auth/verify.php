@@ -1,12 +1,12 @@
 <?php defined('APP_ROOT') || exit; ?>
 <div class="auth">
     <header class="appbar"><div class="appbar-inner">
-        <span class="brand"><?= partial('partials/logo') ?><span class="brand-word"><?= e(setting('site_name')) ?></span></span>
+        <span class="brand"><?= partial('partials/logo') ?><?= wordmark() ?></span>
         <span class="spacer"></span>
         <form method="post" action="/logout"><?= csrf_field() ?><button class="btn btn-ghost btn-sm">Sign out</button></form>
     </div></header>
     <div class="empty">
-        <div class="empty-art"><?= icon('mail', 40) ?></div>
+        <?= partial('partials/art', ['name' => 'mail']) ?>
         <h2>Check your inbox</h2>
         <p>We sent a confirmation link to <b style="color:var(--ink)"><?= e($email) ?></b>. Tap it to continue.</p>
         <div style="display:grid;gap:10px;width:100%;max-width:320px;margin-top:14px">

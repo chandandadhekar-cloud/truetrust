@@ -2,7 +2,7 @@
 <header class="appbar"><div class="appbar-inner"><h1>Likes</h1></div></header>
 <?php if (!$people): ?>
     <div class="empty">
-        <div class="empty-art"><?= icon('heart', 40) ?></div>
+        <?= partial('partials/art', ['name' => 'likes']) ?>
         <h2>No likes yet</h2>
         <p>When someone likes you, they'll show up here. No blur, no paywall. A complete profile with three good photos helps.</p>
         <a href="/profile/edit" class="btn btn-dark btn-sm" style="margin-top:8px">Improve my profile</a>

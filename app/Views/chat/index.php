@@ -2,7 +2,7 @@
 <header class="appbar"><div class="appbar-inner"><h1>Chats</h1></div></header>
 <?php if (!$fresh && !$convos): ?>
     <div class="empty">
-        <div class="empty-art"><?= icon('chat', 40) ?></div>
+        <?= partial('partials/art', ['name' => 'chats']) ?>
         <h2>No matches yet</h2>
         <p>When you and someone like each other, you'll be able to chat here. Keep swiping.</p>
         <a href="/discover" class="btn btn-primary btn-sm" style="margin-top:8px">Start discovering</a>

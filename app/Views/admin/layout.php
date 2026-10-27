@@ -45,10 +45,10 @@ $nav = [
 <div class="admin-shell">
     <div class="topbar">
         <button class="icon-btn" style="color:#fff" data-side-toggle aria-label="Menu"><?= icon('menu', 22) ?></button>
-        <span class="brand"><?= partial('partials/logo') ?><span class="brand-word"><?= e(setting('site_name')) ?></span></span>
+        <span class="brand"><?= partial('partials/logo') ?><?= wordmark() ?></span>
     </div>
     <aside class="side" id="side">
-        <a href="/admin" class="brand"><?= partial('partials/logo') ?><span><span class="brand-word"><?= e(setting('site_name')) ?></span> <small>Admin</small></span></a>
+        <a href="/admin" class="brand"><?= partial('partials/logo') ?><span><?= wordmark() ?> <small>Admin</small></span></a>
         <?php foreach ($nav as [$label, $items]): ?>
             <div class="side-label"><?= e($label) ?></div>
             <?php foreach ($items as [$href, $text, $ico, $count]): ?>

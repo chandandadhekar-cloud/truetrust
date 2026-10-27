@@ -3,7 +3,7 @@ $distances = [0 => 'Anywhere in India', 10 => '10 km', 25 => '25 km', 50 => '50 
 ?>
 <div class="discover">
     <header class="appbar"><div class="appbar-inner">
-        <a href="/discover" class="brand"><?= partial('partials/logo') ?><span class="brand-word"><?= e(setting('site_name')) ?></span></a>
+        <a href="/discover" class="brand"><?= partial('partials/logo') ?><?= wordmark() ?></a>
         <span class="spacer"></span>
         <?php if ($likes > 0): ?>
             <a href="/likes" class="chip chip-brand" style="margin-right:4px"><?= icon('heart', 15) ?> <?= $likes ?> new</a>
@@ -17,7 +17,7 @@ $distances = [0 => 'Anywhere in India', 10 => '10 km', 25 => '25 km', 50 => '50 
              data-likes="<?= $remaining['likes'] === null ? '' : (int) $remaining['likes'] ?>">
             <div class="deck-loading" data-deck-loading><div class="pulse"><?= icon('heart', 34) ?></div></div>
             <div class="deck-empty empty hidden" data-deck-empty>
-                <div class="empty-art"><?= icon('search', 40) ?></div>
+                <?= partial('partials/art', ['name' => 'caught-up']) ?>
                 <h2>You're all caught up</h2>
                 <p>You've seen everyone who matches your filters for now. Widen your age range or distance to meet more people.</p>
                 <button class="btn btn-dark btn-sm" data-open-filters style="margin-top:8px"><?= icon('sliders', 18) ?> Adjust filters</button>

@@ -12,7 +12,7 @@
 <div class="login-wrap">
     <form class="login-card" method="post" action="/admin/login">
         <?= csrf_field() ?>
-        <span class="brand" style="margin-bottom:22px"><?= partial('partials/logo') ?><span class="brand-word"><?= e(setting('site_name')) ?></span></span>
+        <span class="brand" style="margin-bottom:22px"><?= partial('partials/logo') ?><?= wordmark() ?></span>
         <h1 class="display" style="font-size:26px;margin-bottom:4px">Admin sign in</h1>
         <p class="muted" style="margin-bottom:22px">Authorised team members only.</p>
         <?php if ($toast): ?><div class="notice" style="margin-bottom:16px"><?= icon('alert', 18) ?><span><?= e($toast['message']) ?></span></div><?php endif; ?>

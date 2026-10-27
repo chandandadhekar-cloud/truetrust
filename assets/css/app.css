@@ -152,7 +152,7 @@ p { margin: 0; }
 .tab .icon { width: 25px; height: 25px; transition: transform .25s var(--ease); }
 .tab.is-active { color: var(--ink); }
 .tab.is-active .icon { transform: translateY(-1px); }
-.tab.is-active .tab-flame { color: var(--brand); }
+
 .tab:active .icon { transform: scale(.88); }
 .dot-badge {
   position: absolute;
@@ -835,3 +835,25 @@ input[type=file]::file-selector-button {
   .deck-wrap { max-width: 460px; }
   .deck { max-height: 700px; }
 }
+
+/* ---------- Brand ---------- */
+.brand-mark { width: 34px; height: 34px; }
+.brand-word i { font-style: italic; font-weight: 500; color: var(--brand); padding-right: .04em; }
+.art { width: 200px; max-width: 70%; height: auto; margin-bottom: 4px; }
+.sp .sp-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sp > span { position: relative; z-index: 1; }
+.sp-2 { background: linear-gradient(165deg, #2E3250, #3F7766); }
+.sp-heart { display: none; }
+.sp-seal {
+  position: absolute; left: 160px; top: 104px; z-index: 3;
+  width: 62px; height: 62px; border-radius: 50%;
+  background: var(--surface); box-shadow: var(--shadow-2);
+  display: flex; align-items: center; justify-content: center;
+  animation: seal-in .8s cubic-bezier(.2, 1.4, .3, 1) .2s both;
+}
+.sp-seal .brand-mark { width: 44px; height: 44px; }
+@keyframes seal-in { from { transform: scale(.4) rotate(-30deg); opacity: 0; } }
+.brand-word i { margin-left: -.07em; }
+.tab-seal .s, .tab-seal .h { transition: fill .2s, stroke .2s; }
+.is-active > .tab-seal .s { fill: var(--brand); stroke: var(--brand); }
+.is-active > .tab-seal .h { fill: #fff; }
