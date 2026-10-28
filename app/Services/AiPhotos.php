@@ -23,11 +23,13 @@ use App\Models\Photo;
  */
 final class AiPhotos
 {
-    public const MODELS = ['gpt-image-1' => 'gpt-image-1', 'gpt-image-1-mini' => 'gpt-image-1-mini'];
+    /** Tried in this order when the selected model isn't available to the key. */
+    public const PREFERRED = ['gpt-image-1.5', 'gpt-image-1', 'gpt-image-2', 'gpt-image-1-mini'];
     public const QUALITIES = ['low', 'medium', 'high'];
     public const MAX_SHOTS = 4;
 
     // USD per 1M tokens: [text input, image input, image output].
+    // Models not listed here are costed at gpt-image-1 rates (a conservative estimate).
     private const RATES = [
         'gpt-image-1'      => [5.0, 10.0, 40.0],
         'gpt-image-1-mini' => [2.0, 2.5, 8.0],
@@ -45,14 +47,31 @@ final class AiPhotos
 
     public static function model(): string
     {
-        $m = (string) Settings::get('openai_image_model', 'gpt-image-1');
-        return isset(self::MODELS[$m]) ? $m : 'gpt-image-1';
+        $m = trim((string) Settings::get('openai_image_model', 'gpt-image-1'));
+        return preg_match('/^[a-z0-9][a-z0-9.\-]{2,60}$/', $m) ? $m : 'gpt-image-1';
+    }
+
+    /** Image models offered in Settings: the ones found on the key by Check connection, else defaults. */
+    public static function models(): array
+    {
+        $found = array_filter(explode(',', (string) Settings::get('ai_models_available', '')));
+        $list = $found ?: ['gpt-image-1', 'gpt-image-1-mini'];
+        if (!in_array(self::model(), $list, true)) {
+            $list[] = self::model();
+        }
+        return array_values(array_unique($list));
+    }
+
+    /** Only gpt-image-1 is known to accept input_fidelity; other models get the plain edit. */
+    private static function supportsFidelity(string $model): bool
+    {
+        return $model === 'gpt-image-1';
     }
 
     /** Estimated cost of one image, including the face reference for later shots. */
     public static function estimate(string $quality, bool $withReference = false): float
     {
-        $base = self::ESTIMATE[self::model()][$quality] ?? 0.063;
+        $base = (self::ESTIMATE[self::model()] ?? self::ESTIMATE['gpt-image-1'])[$quality] ?? 0.063;
         return round($base + ($withReference ? $base * 0.25 : 0), 4);
     }
 
@@ -328,6 +347,67 @@ final class AiPhotos
         return $list[mt_rand(0, count($list) - 1)];
     }
 
+    /**
+     * Free connection check: lists the key's image models, then confirms the
+     * selected one is usable by sending a request with an invalid size (the API
+     * checks model access first and rejects the size without generating
+     * anything). If the selected model isn't usable, the first working
+     * preferred model is selected instead.
+     * @return array{ok:bool, message:string, models:array, model:string}
+     */
+    public static function checkConnection(): array
+    {
+        if (!self::configured()) {
+            return ['ok' => false, 'message' => 'Save an API key first.', 'models' => [], 'model' => self::model()];
+        }
+        try {
+            $list = self::client('models', null, false)['json']['data'] ?? [];
+        } catch (\RuntimeException $e) {
+            return ['ok' => false, 'message' => $e->getMessage(), 'models' => [], 'model' => self::model()];
+        }
+        $models = array_values(array_filter(array_column($list, 'id'), static fn ($id) => strpos($id, 'image') !== false && strpos($id, 'chatgpt') !== 0));
+        sort($models);
+        Settings::set('ai_models_available', implode(',', $models));
+        if (!$models) {
+            return ['ok' => false, 'message' => 'This key has no image models. In the OpenAI dashboard, allow image models for the key\'s project, or verify your organization.', 'models' => [], 'model' => self::model()];
+        }
+
+        $candidates = array_values(array_unique(array_merge([self::model()], array_intersect(self::PREFERRED, $models))));
+        $problems = [];
+        foreach ($candidates as $m) {
+            $why = self::probe($m);
+            if ($why === null) {
+                $switched = $m !== self::model();
+                Settings::set('openai_image_model', $m);
+                return [
+                    'ok'      => true,
+                    'message' => $switched
+                        ? "Connected. Switched to {$m} because the previous model isn't available to this key (" . reset($problems) . ').'
+                        : "Connected. {$m} is ready to use.",
+                    'models'  => $models,
+                    'model'   => $m,
+                ];
+            }
+            $problems[$m] = str_replace(' Open Settings → AI photos and press Check connection.', '', $why);
+        }
+        return ['ok' => false, 'message' => 'The key works but cannot use an image model: ' . reset($problems), 'models' => $models, 'model' => self::model()];
+    }
+
+    /** Returns null when the model is usable, otherwise the reason. Never generates an image. */
+    private static function probe(string $model): ?string
+    {
+        try {
+            self::client('images/generations', ['model' => $model, 'prompt' => 'connection check', 'size' => '8x8'], false);
+            return null;
+        } catch (\RuntimeException $e) {
+            // An "invalid size" rejection means the model itself is accessible.
+            if ($e->getCode() === 400 && stripos($e->getMessage(), 'size') !== false) {
+                return null;
+            }
+            return $e->getMessage();
+        }
+    }
+
     /* ---------------- OpenAI client ---------------- */
 
     private static function generationBody(array $job): array
@@ -355,14 +435,14 @@ final class AiPhotos
             'output_format' => 'jpeg',
             'image[]'       => new \CURLFile($tmp, 'image/jpeg', 'reference.jpg'),
         ];
-        if (self::model() === 'gpt-image-1') {
+        if (self::supportsFidelity(self::model())) {
             $body['input_fidelity'] = 'high';
         }
         return $body;
     }
 
     /** @return array{bytes:string, usage:?array} */
-    private static function client(string $path, array $body, bool $multipart): array
+    private static function client(string $path, ?array $body, bool $multipart): array
     {
         if (!function_exists('curl_init')) {
             throw new \RuntimeException('The PHP cURL extension is required for AI photos.', 0);
@@ -374,9 +454,11 @@ final class AiPhotos
         if (!$multipart) {
             $headers[] = 'Content-Type: application/json';
         }
+        if ($body !== null) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $multipart ? $body : json_encode($body));
+        }
         curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $multipart ? $body : json_encode($body),
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 200,
@@ -394,8 +476,13 @@ final class AiPhotos
         if ($status < 200 || $status >= 300) {
             $msg = $data['error']['message'] ?? ('OpenAI returned HTTP ' . $status);
             $code = $data['error']['code'] ?? '';
+            $model = is_array($body) ? ($body['model'] ?? '') : '';
             if ($status === 401) {
                 $msg = 'OpenAI rejected the API key. Check it in Settings.';
+            } elseif ($code === 'model_not_found' || $status === 404 || stripos($msg, 'does not exist') !== false
+                || stripos($msg, 'must be verified') !== false || stripos($msg, 'organization') !== false && $status === 403) {
+                $msg = "Your OpenAI key can't use the model {$model}: " . $msg . ' Open Settings → AI photos and press Check connection.';
+                $status = 403;
             } elseif ($code === 'insufficient_quota' || $code === 'billing_hard_limit_reached') {
                 $msg = 'Your OpenAI account is out of credit.';
                 $status = 429;
@@ -403,6 +490,9 @@ final class AiPhotos
                 $msg = 'OpenAI rate limit reached. Wait a minute and press Start again.';
             }
             throw new \RuntimeException($msg, $status);
+        }
+        if ($body === null) {
+            return ['bytes' => '', 'usage' => null, 'json' => $data];
         }
         $b64 = $data['data'][0]['b64_json'] ?? null;
         $bytes = $b64 ? base64_decode($b64, true) : false;
@@ -418,7 +508,7 @@ final class AiPhotos
         if (!$usage || !isset($usage['output_tokens'])) {
             return null;
         }
-        [$textIn, $imageIn, $out] = self::RATES[self::model()];
+        [$textIn, $imageIn, $out] = self::RATES[self::model()] ?? self::RATES['gpt-image-1'];
         $details = $usage['input_tokens_details'] ?? [];
         $text = (int) ($details['text_tokens'] ?? ($usage['input_tokens'] ?? 0));
         $image = (int) ($details['image_tokens'] ?? 0);

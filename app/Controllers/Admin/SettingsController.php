@@ -54,7 +54,9 @@ final class SettingsController extends AdminController
         }
         if (array_key_exists('openai_image_model', $_POST)) {
             $model = (string) $_POST['openai_image_model'];
-            Settings::set('openai_image_model', isset(\App\Services\AiPhotos::MODELS[$model]) ? $model : 'gpt-image-1');
+            if (in_array($model, \App\Services\AiPhotos::models(), true)) {
+                Settings::set('openai_image_model', $model);
+            }
             $quality = (string) ($_POST['ai_default_quality'] ?? 'medium');
             Settings::set('ai_default_quality', in_array($quality, \App\Services\AiPhotos::QUALITIES, true) ? $quality : 'medium');
             Settings::set('ai_budget_usd', (string) max(0, min(1000, round((float) ($_POST['ai_budget_usd'] ?? 3), 2))));
@@ -76,6 +78,14 @@ final class SettingsController extends AdminController
         AdminAuth::log('settings.update', null, null, implode(', ', $changed));
         flash('success', 'Settings saved.');
         redirect('/admin/settings' . ($section ? '#' . $section : ''));
+    }
+
+    public function checkAi(): void
+    {
+        $r = \App\Services\AiPhotos::checkConnection();
+        AdminAuth::log('ai_photos.check', null, null, $r['message']);
+        flash($r['ok'] ? 'success' : 'error', $r['message']);
+        redirect('/admin/settings#ai');
     }
 
     public function testEmail(): void

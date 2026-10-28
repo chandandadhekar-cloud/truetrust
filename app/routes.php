@@ -133,6 +133,7 @@ return static function (Router $r): void {
         $r->get('/settings', [A\SettingsController::class, 'index']);
         $r->post('/settings', [A\SettingsController::class, 'save']);
         $r->post('/settings/test-email', [A\SettingsController::class, 'testEmail']);
+        $r->post('/settings/ai-check', [A\SettingsController::class, 'checkAi']);
 
         $r->get('/team', [A\TeamController::class, 'index']);
         $r->post('/team', [A\TeamController::class, 'store'], ['owner']);
