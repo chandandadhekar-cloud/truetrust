@@ -18,7 +18,7 @@
       for (var i = 0; i < max; i++) {
         var p = photos[i];
         if (p) {
-          html += '<div class="photo-slot has-photo" data-photo-id="' + p.id + '"><img src="' + TT.esc(p.url) + '" alt="">' +
+          html += '<div class="photo-slot has-photo' + (p.fresh ? ' is-new' : '') + '" data-photo-id="' + p.id + '"><img src="' + TT.esc(p.url) + '" alt="">' +
             '<div class="ph-actions">' + (i > 0 ? '<button type="button" class="ph-btn" data-photo-first title="Make cover photo">' + TT.icon('star', 16) + '</button>' : '') +
             '<button type="button" class="ph-btn" data-photo-delete title="Remove photo"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>' +
             (p.pending ? '<span class="ph-tag pending">In review</span>' : i === 0 ? '<span class="ph-tag">Cover</span>' : '') + '</div>';
@@ -30,6 +30,7 @@
         }
       }
       grid.innerHTML = html;
+      photos.forEach(function (p) { p.fresh = false; });
       if (next) next.disabled = photos.length === 0 || uploading > 0;
     };
 
@@ -56,7 +57,7 @@
         fd.append('photo', f, f.name || 'photo.jpg');
         return TT.api('/api/photos', { body: fd });
       }).then(function (r) {
-        photos.push({ id: r.photo.id, url: r.photo.url, pending: r.photo.status === 'pending' });
+        photos.push({ id: r.photo.id, url: r.photo.url, pending: r.photo.status === 'pending', fresh: true });
         if (r.photo.status === 'pending') TT.toast('Photo added. It will appear once reviewed.', 'info');
       }).catch(function (err) {
         TT.toast(err.message, 'error');
@@ -77,6 +78,9 @@
         TT.confirm('Remove this photo?', 'Remove').then(function (ok) {
           if (!ok) return;
           TT.api('/api/photos/' + id + '/delete', { body: {} }).then(function () {
+            slot.classList.add('is-removing');
+            return new Promise(function (res) { setTimeout(res, 220); });
+          }).then(function () {
             photos = photos.filter(function (p) { return p.id !== id; });
             draw();
           }).catch(function (err) { TT.toast(err.message, 'error'); });

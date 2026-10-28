@@ -69,7 +69,7 @@
   };
   TT.verified = function (size) {
     size = size || 20;
-    return '<svg class="icon icon-verified" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-label="Verified"><path fill="currentColor" d="M12 1.5l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.5l-2.6-1.9-3.2.1-1-3-2.6-1.9 1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return '<svg class="icon icon-verified" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-label="Verified"><path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 2.6A3.3 3.3 0 0 1 17.53 4.4A3.3 3.3 0 0 1 20.94 9.1A3.3 3.3 0 0 1 20.94 14.9A3.3 3.3 0 0 1 17.53 19.6A3.3 3.3 0 0 1 12 21.4A3.3 3.3 0 0 1 6.47 19.6A3.3 3.3 0 0 1 3.06 14.9A3.3 3.3 0 0 1 3.06 9.1A3.3 3.3 0 0 1 6.47 4.4A3.3 3.3 0 0 1 12 2.6Z"/><path d="M8.1 12.3l2.6 2.6 5.2-5.3" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   };
 
   /* ---------- Toasts ---------- */
@@ -208,6 +208,16 @@
     });
   };
   TT.bindGallery();
+
+  /* ---------- Reaction burst ---------- */
+  TT.burst = function (action) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var el = document.createElement('div');
+    el.className = 'burst burst-' + action;
+    el.innerHTML = TT.icon(action === 'pass' ? 'x' : action === 'superlike' ? 'star' : 'heart', 64);
+    document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, 950);
+  };
 
   /* ---------- Match celebration ---------- */
   TT.matchOverlay = function (m) {

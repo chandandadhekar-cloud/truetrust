@@ -272,7 +272,7 @@ function icon(string $name, int $size = 22, string $class = ''): string
         'wifi-off'   => '<path d="M1 1l22 22M16.7 11.1A11 11 0 0 1 19 12.6M5 12.6a11 11 0 0 1 5.2-2.5M10.7 5A16 16 0 0 1 22.6 9M1.4 9a16 16 0 0 1 4.4-2.7M8.5 16.1a5 5 0 0 1 7 0M12 20h.01"/>',
     ];
     if ($name === 'verified') {
-        return '<svg class="icon icon-verified ' . e($class) . '" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" aria-label="Verified"><path fill="currentColor" d="M12 1.5l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.5l-2.6-1.9-3.2.1-1-3-2.6-1.9 1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        return '<svg class="icon icon-verified ' . e($class) . '" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" aria-label="Verified"><path fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M12 2.6A3.3 3.3 0 0 1 17.53 4.4A3.3 3.3 0 0 1 20.94 9.1A3.3 3.3 0 0 1 20.94 14.9A3.3 3.3 0 0 1 17.53 19.6A3.3 3.3 0 0 1 12 21.4A3.3 3.3 0 0 1 6.47 19.6A3.3 3.3 0 0 1 3.06 14.9A3.3 3.3 0 0 1 3.06 9.1A3.3 3.3 0 0 1 6.47 4.4A3.3 3.3 0 0 1 12 2.6Z"/><path d="M8.1 12.3l2.6 2.6 5.2-5.3" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     }
     $body = $paths[$name] ?? $paths['info'];
     return '<svg class="icon ' . e($class) . '" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $body . '</svg>';

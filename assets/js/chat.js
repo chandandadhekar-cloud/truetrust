@@ -16,6 +16,9 @@
   var pollDelay = 3000;
   var timer = null;
   var coarse = window.matchMedia('(pointer: coarse)').matches;
+  var drawn = {}; // message id -> when it first appeared; newer ones animate in
+  var firstDraw = true;
+  var ENTER_MS = 320;
 
   messages.forEach(function (m) { if (m.mine && m.read) readUpTo = Math.max(readUpTo, m.id); });
 
@@ -45,19 +48,26 @@
     var html = '';
     var day = null;
     var lastMine = null;
+    var now = Date.now();
     messages.forEach(function (m) { if (m.mine && m.id > 0) lastMine = m; });
     messages.forEach(function (m, i) {
       if (m.date !== day) { day = m.date; html += '<div class="msg-day">' + dayLabel(day) + '</div>'; }
       var next = messages[i + 1];
       var endOfRun = !next || next.mine !== m.mine || next.date !== m.date;
       var cls = 'msg ' + (m.mine ? 'mine' : 'theirs') + (m.removed ? ' removed' : '') + (m.pending ? ' pending' : '') + (m.failed ? ' failed' : '');
-      html += '<div class="' + cls + '"><div class="bubble">' + (m.removed ? 'This message was removed by moderators' : TT.esc(m.body)) + '</div>';
+      if (!drawn[m.id]) drawn[m.id] = firstDraw ? -1 : now;
+      // Redraws rebuild the list, so resume a running entrance instead of restarting it.
+      var age = drawn[m.id] < 0 ? ENTER_MS : now - drawn[m.id];
+      var style = age < ENTER_MS ? ' style="animation-delay:-' + Math.round(age) + 'ms"' : '';
+      if (style) cls += ' is-new';
+      html += '<div class="' + cls + '"' + style + '><div class="bubble">' + (m.removed ? 'This message was removed by moderators' : TT.esc(m.body)) + '</div>';
       if (m.failed) html += '<div class="msg-meta" style="color:var(--danger)">Not sent</div>';
       else if (m === lastMine && m.id <= readUpTo) html += '<div class="msg-meta">Seen</div>';
       else if (endOfRun) html += '<div class="msg-meta">' + (m.pending ? 'Sending…' : m.time) + '</div>';
       html += '</div>';
     });
     list.innerHTML = html;
+    firstDraw = false;
     if (ice) ice.classList.toggle('hidden', messages.length > 0);
   }
 
@@ -114,6 +124,7 @@
       TT.api('/api/chat/' + matchId, { body: { body: body } })
         .then(function (r) {
           var i = messages.indexOf(temp);
+          drawn[r.message.id] = drawn[temp.id]; // same bubble as the pending copy
           if (i > -1 && !messages.some(function (x) { return x.id === r.message.id; })) messages[i] = r.message;
           else if (i > -1) messages.splice(i, 1);
           render();

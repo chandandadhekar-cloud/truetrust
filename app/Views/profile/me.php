@@ -10,7 +10,7 @@ $circ = 2 * M_PI * 70;
         <div class="me-photo">
             <svg class="ring" viewBox="0 0 148 148" aria-hidden="true">
                 <circle class="track" cx="74" cy="74" r="70"/>
-                <circle class="val" cx="74" cy="74" r="70" stroke-dasharray="<?= $circ ?>" stroke-dashoffset="<?= $circ * (1 - $complete / 100) ?>" transform="rotate(-90 74 74)"/>
+                <circle class="val" cx="74" cy="74" r="70" style="--circ:<?= $circ ?>" stroke-dasharray="<?= $circ ?>" stroke-dashoffset="<?= $circ * (1 - $complete / 100) ?>" transform="rotate(-90 74 74)"/>
             </svg>
             <span class="avatar"><?php if ($photo): ?><img src="<?= photo_url($photo, 'thumb') ?>" alt=""><?php else: ?><?= e(initials($me['first_name'])) ?><?php endif; ?></span>
             <span class="me-pct"><?= $complete ?>% complete</span>

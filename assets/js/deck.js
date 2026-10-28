@@ -14,6 +14,9 @@
   var emptyEl = deckEl.querySelector('[data-deck-empty]');
   var actions = document.querySelector('[data-deck-actions]');
   var THRESHOLD = 110;
+  var MOTION = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var exits = {};      // card id -> transform it left with, so Undo can bring it back the same way
+  var entering = null; // card id being brought back by Undo
 
   function load() {
     if (loading || exhausted) return Promise.resolve();
@@ -45,19 +48,60 @@
     existing.forEach(function (el) {
       if (!wanted.some(function (c) { return String(c.id) === el.dataset.id; }) && !el.classList.contains('is-leaving')) el.remove();
     });
-    // Draw back-to-front so the top card sits last in the DOM.
+    // Stacking comes from z-index (behind < top < leaving), never DOM order:
+    // moving a node in the DOM would cancel the transition it is running.
     wanted.slice().reverse().forEach(function (card, idx) {
       var isTop = idx === wanted.length - 1;
       var el = deckEl.querySelector('.pcard[data-id="' + card.id + '"]:not(.is-leaving)');
-      if (!el) {
+      var fresh = !el;
+      if (fresh) {
         el = build(card);
         deckEl.appendChild(el);
       }
+      var was = el.classList.contains('is-top') ? 'top' : el.classList.contains('is-behind') ? 'behind' : null;
+      if (isTop && fresh && entering === card.id && MOTION) {
+        // Undo: start where the card left the screen, then glide back in.
+        el.style.transform = exits[card.id] || 'translateY(-120%)';
+        el.classList.add('is-top');
+        void el.offsetWidth;
+        settle(el);
+        el.style.transform = '';
+      } else if (was && was !== (isTop ? 'top' : 'behind')) {
+        settle(el); // promoted to the front, or pushed back by an undo
+      } else if (fresh && !isTop && MOTION) {
+        el.classList.add('is-entering');
+        setTimeout(function () { el.classList.remove('is-entering'); }, 450);
+      }
       el.classList.toggle('is-top', isTop);
       el.classList.toggle('is-behind', !isTop);
-      if (isTop) { deckEl.appendChild(el); bindDrag(el, card); }
+      if (isTop) bindDrag(el, card);
     });
+    entering = null;
     if (queue.length < 4) load();
+  }
+
+  // Lets the next transform change animate, then hands control back to drag.
+  function settle(el) {
+    el.classList.add('is-animating');
+    clearTimeout(el._settle);
+    el._settle = setTimeout(function () { if (!el.classList.contains('is-leaving')) el.classList.remove('is-animating'); }, 420);
+  }
+
+  // Press feedback on the action buttons, also when the action came from a swipe or key.
+  function pop(action) {
+    var b = actions.querySelector('[data-act="' + action + '"]');
+    if (!b || !MOTION) return;
+    b.classList.remove('is-pop');
+    void b.offsetWidth;
+    b.classList.add('is-pop');
+    clearTimeout(b._pop);
+    b._pop = setTimeout(function () { b.classList.remove('is-pop'); }, 600);
+  }
+
+  function hot(action) {
+    actions.querySelectorAll('[data-act]').forEach(function (b) {
+      b.classList.toggle('is-hot', b.getAttribute('data-act') === action);
+    });
   }
 
   function build(card) {
@@ -132,10 +176,12 @@
       like.style.opacity = Math.max(0, Math.min(1, dx / THRESHOLD));
       nope.style.opacity = Math.max(0, Math.min(1, -dx / THRESHOLD));
       sup.style.opacity = Math.abs(dx) < 70 ? Math.max(0, Math.min(1, -dy / THRESHOLD)) : 0;
+      hot(dx > THRESHOLD * 0.5 ? 'like' : dx < -THRESHOLD * 0.5 ? 'pass' : (dy < -THRESHOLD * 0.5 && Math.abs(dx) < 70) ? 'superlike' : null);
     });
     function end(e) {
       if (!dragging || (e && e.pointerId !== pid)) return;
       dragging = false;
+      hot(null);
       if (!moved) {
         var t = e && document.elementFromPoint(e.clientX, e.clientY);
         if (t && t.closest('[data-open-profile]')) openProfile(card);
@@ -163,16 +209,23 @@
     var card = queue[0];
     var el = deckEl.querySelector('.pcard.is-top');
     busy = true;
+    pop(action);
     if (el) {
+      [].forEach.call(el.querySelectorAll('.stamp'), function (s) { s.style.opacity = 0; });
       var stamp = el.querySelector(action === 'like' ? '.stamp-like' : action === 'pass' ? '.stamp-nope' : '.stamp-super');
       stamp.style.opacity = 1;
       var w = window.innerWidth;
       var x = action === 'like' ? w * 1.3 : action === 'pass' ? -w * 1.3 : (dx || 0);
       var y = action === 'superlike' ? -window.innerHeight * 1.2 : (dy || 0) + 60;
-      el.classList.add('is-animating', 'is-leaving');
+      var t = 'translate(' + x + 'px,' + y + 'px) rotate(' + (action === 'like' ? 24 : action === 'pass' ? -24 : 0) + 'deg)';
+      exits[card.id] = t;
+      el.classList.add('is-leaving');
       el.classList.remove('is-top');
-      el.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + (action === 'like' ? 24 : action === 'pass' ? -24 : 0) + 'deg)';
-      setTimeout(function () { el.remove(); }, 400);
+      // Commit the current position first so a button press animates from rest.
+      void el.offsetWidth;
+      el.classList.add('is-animating');
+      el.style.transform = t;
+      setTimeout(function () { el.remove(); }, 520);
     }
     queue.shift();
     seen.push(card.id);
@@ -195,11 +248,15 @@
   }
 
   function rewind() {
+    pop('rewind');
     TT.api('/api/rewind', { body: {} })
       .then(function (r) {
         seen = seen.filter(function (id) { return id !== r.card.id; });
+        var stale = deckEl.querySelector('.pcard[data-id="' + r.card.id + '"]');
+        if (stale) stale.remove();
         queue.unshift(r.card);
         exhausted = false;
+        entering = r.card.id;
         render();
       })
       .catch(function (err) { TT.toast(err.message, 'info'); });
