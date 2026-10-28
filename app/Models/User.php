@@ -97,9 +97,10 @@ final class User
      * Public-facing profile for cards and profile pages. Never includes
      * email, surname, admin flags or anything a viewer shouldn't see.
      */
-    public static function card(array $u, ?array $viewer = null, ?array $photoIds = null): array
+    public static function card(array $u, ?array $viewer = null, ?array $photoIds = null, ?bool $ai = null): array
     {
         $photoIds ??= Photo::idsFor((int) $u['id'], true);
+        $ai ??= isset(Photo::aiUsers([(int) $u['id']])[(int) $u['id']]);
         $km = $viewer ? self::distanceKm(
             $viewer['lat'] !== null ? (float) $viewer['lat'] : null,
             $viewer['lng'] !== null ? (float) $viewer['lng'] : null,
@@ -147,6 +148,7 @@ final class User
             'photos'    => array_map(static fn ($id) => photo_url((int) $id), $photoIds),
             'activity'  => activity_label($u['last_active_at']),
             'online'    => is_online($u['last_active_at']),
+            'ai'        => $ai,
         ];
     }
 

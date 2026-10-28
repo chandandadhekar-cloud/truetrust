@@ -64,6 +64,26 @@ $num = static fn (string $key, string $label, string $hint = '') => '<label clas
         <div class="panel-b" style="border-top:1px solid var(--line)"><label class="field"><span>Message</span><input class="input" name="announcement" maxlength="160" value="<?= e($s['announcement']) ?>" placeholder="e.g. New: see who's active now in Likes"></label></div>
     </form>
 
+    <form class="panel" method="post" action="/admin/settings" id="ai">
+        <?= csrf_field() ?><input type="hidden" name="section" value="ai">
+        <div class="panel-h"><h2>AI photos (OpenAI)</h2><div class="actions"><button class="btn btn-dark btn-xs">Save</button></div></div>
+        <div class="panel-b">
+            <?php $key = (string) $s['openai_api_key']; ?>
+            <label class="field"><span>API key</span>
+                <input class="input" type="password" name="openai_api_key" autocomplete="off" placeholder="<?= $key !== '' ? 'Saved: sk-…' . e(substr($key, -4)) . ' (type to replace)' : 'sk-…' ?>">
+                <p class="hint">Stored only in your database, never in code. Used for seed profile photos.</p>
+            </label>
+            <?php if ($key !== ''): ?><label class="row small" style="margin:-6px 0 14px"><input type="checkbox" name="openai_remove_key" value="1"> Remove saved key</label><?php endif; ?>
+            <div class="form-grid">
+                <label class="field"><span>Model</span><select class="select" name="openai_image_model"><?php foreach (App\Services\AiPhotos::MODELS as $m): ?><option<?= selected($s['openai_image_model'], $m) ?>><?= e($m) ?></option><?php endforeach; ?></select></label>
+                <label class="field"><span>Default quality</span><select class="select" name="ai_default_quality"><?php foreach (App\Services\AiPhotos::QUALITIES as $q): ?><option value="<?= $q ?>"<?= selected($s['ai_default_quality'], $q) ?>><?= ucfirst($q) ?></option><?php endforeach; ?></select></label>
+                <label class="field"><span>Spending cap (USD)</span><input class="input" type="number" step="0.01" min="0" name="ai_budget_usd" value="<?= e($s['ai_budget_usd']) ?>"></label>
+                <div class="field"><span class="label">Spent so far</span><p style="padding-top:10px"><b>$<?= number_format((float) $s['ai_spent_usd'], 2) ?></b> <label class="small muted" style="margin-left:8px"><input type="checkbox" name="ai_reset_spent" value="1"> reset</label></p></div>
+            </div>
+            <p class="hint">Generation stops automatically before the cap. Profiles with AI photos show an "AI-generated photos" label to members.</p>
+        </div>
+    </form>
+
     <form class="panel" method="post" action="/admin/settings" id="email">
         <?= csrf_field() ?><input type="hidden" name="section" value="email">
         <div class="panel-h"><h2>Email delivery</h2><div class="actions"><button class="btn btn-dark btn-xs">Save</button></div></div>

@@ -912,3 +912,9 @@ input[type=file]::file-selector-button {
   .welcome-foot a:hover { color: var(--ink); }
 }
 .welcome-art .stack-preview { width: 302px; flex: none; }
+
+/* ---------- AI photo disclosure ---------- */
+.pill-ai { background: rgba(20, 16, 18, .55); }
+.ai-note { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.ai-note .icon { color: var(--gold); }
+.lt-ai { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: rgba(0, 0, 0, .45); }

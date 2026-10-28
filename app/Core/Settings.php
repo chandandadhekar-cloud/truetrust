@@ -37,6 +37,11 @@ final class Settings
         'smtp_user'              => '',
         'smtp_pass'              => '',
         'smtp_secure'            => 'tls',
+        'openai_api_key'         => '',
+        'openai_image_model'     => 'gpt-image-1',
+        'ai_default_quality'     => 'medium',
+        'ai_budget_usd'          => '3',
+        'ai_spent_usd'           => '0',
     ];
 
     private static ?array $values = null;

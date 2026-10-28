@@ -26,6 +26,7 @@
                 <div class="lt-info">
                     <div class="lt-name"><?= e($p['first_name']) ?>, <?= age($p['dob']) ?><?php if ($p['is_verified']): ?> <?= icon('verified', 16) ?><?php endif; ?></div>
                     <div class="lt-sub"><?= e($p['city']) ?> · <?= time_ago($p['liked_at']) ?></div>
+                    <?php if (isset($ai[(int) $p['id']])): ?><div class="lt-ai"><?= icon('sparkle', 12) ?>AI-generated photos</div><?php endif; ?>
                 </div>
             </a>
         <?php endforeach; ?>

@@ -12,6 +12,7 @@ $photos = $card['photos'];
 </div>
 <div class="pv-head">
     <div class="pv-name"><?= e($card['name']) ?> <span class="age"><?= (int) $card['age'] ?></span><?php if ($card['verified']): ?><?= icon('verified', 24) ?><?php endif; ?></div>
+    <?php if (!empty($card['ai'])): ?><p class="ai-note"><?= icon('sparkle', 15) ?>This profile's photos are AI-generated.</p><?php endif; ?>
     <div class="pv-meta">
         <?php if ($card['activity']): ?><span style="color:<?= $card['online'] ? 'var(--ok)' : 'inherit' ?>"><?= icon('zap') ?><?= e($card['activity']) ?></span><?php endif; ?>
         <?php if ($card['job']): ?><span><?= icon('briefcase') ?><?= e($card['job']) ?></span><?php endif; ?>

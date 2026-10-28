@@ -52,6 +52,22 @@ final class SettingsController extends AdminController
                 $changed[] = $k;
             }
         }
+        if (array_key_exists('openai_image_model', $_POST)) {
+            $model = (string) $_POST['openai_image_model'];
+            Settings::set('openai_image_model', isset(\App\Services\AiPhotos::MODELS[$model]) ? $model : 'gpt-image-1');
+            $quality = (string) ($_POST['ai_default_quality'] ?? 'medium');
+            Settings::set('ai_default_quality', in_array($quality, \App\Services\AiPhotos::QUALITIES, true) ? $quality : 'medium');
+            Settings::set('ai_budget_usd', (string) max(0, min(1000, round((float) ($_POST['ai_budget_usd'] ?? 3), 2))));
+            if (Request::bool('ai_reset_spent')) {
+                Settings::set('ai_spent_usd', '0');
+            }
+            if (Request::bool('openai_remove_key')) {
+                Settings::set('openai_api_key', '');
+            } elseif (Request::str('openai_api_key') !== '') {
+                Settings::set('openai_api_key', Request::str('openai_api_key'));
+            }
+            $changed[] = 'openai';
+        }
         // Only overwrite the stored SMTP password when a new one is typed.
         if (Request::str('smtp_pass') !== '') {
             Settings::set('smtp_pass', (string) $_POST['smtp_pass']);

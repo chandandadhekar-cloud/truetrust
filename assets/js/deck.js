@@ -71,6 +71,7 @@
     if (card.superliked_you) pills.push('<span class="pill pill-gold">' + TT.icon('star', 13) + 'Super Liked you</span>');
     else if (card.liked_you) pills.push('<span class="pill pill-brand">' + TT.icon('heart', 13) + 'Likes you</span>');
     if (card.online) pills.push('<span class="pill pill-live">Active now</span>');
+    if (card.ai) pills.push('<span class="pill pill-ai">' + TT.icon('sparkle', 13) + 'AI-generated photos</span>');
     var meta = [];
     if (card.job) meta.push('<span>' + TT.icon('briefcase', 16) + TT.esc(card.job) + '</span>');
     meta.push('<span>' + TT.icon('pin', 16) + TT.esc(card.city) + (card.distance ? ' · ' + TT.esc(card.distance) : '') + '</span>');
@@ -239,6 +240,7 @@
       '<div class="profile-view" data-profile="' + card.id + '" data-name="' + TT.esc(card.name) + '">' +
       '<div class="pv-gallery"><div class="pv-track" data-gallery>' + photos + '</div>' + dots + '</div>' +
       '<div class="pv-head"><div class="pv-name">' + TT.esc(card.name) + ' <span class="age">' + card.age + '</span>' + (card.verified ? TT.verified(24) : '') + '</div>' +
+      (card.ai ? '<p class="ai-note">' + TT.icon('sparkle', 15) + 'This profile\'s photos are AI-generated.</p>' : '') +
       '<div class="pv-meta">' + meta.join('') + '</div></div>' +
       (card.bio ? '<div class="pv-section"><h3>About</h3><p class="pv-bio">' + TT.esc(card.bio) + '</p></div>' : '') +
       (card.prompts.length ? '<div style="height:14px"></div>' : '') +

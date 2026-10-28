@@ -108,6 +108,11 @@ return static function (Router $r): void {
         $r->post('/seed/generate', [A\SeedController::class, 'generate']);
         $r->post('/seed/photos', [A\SeedController::class, 'assignPhotos']);
         $r->post('/seed/purge', [A\SeedController::class, 'purge'], ['owner']);
+        $r->post('/seed/ai/queue', [A\SeedController::class, 'aiQueue']);
+        $r->post('/seed/ai/run', [A\SeedController::class, 'aiRun']);
+        $r->get('/seed/ai/status', [A\SeedController::class, 'aiStatus']);
+        $r->post('/seed/ai/manage', [A\SeedController::class, 'aiManage']);
+        $r->post('/users/{id:\d+}/ai-photos', [A\SeedController::class, 'aiQueueOne']);
 
         $r->get('/conversations', [A\ConversationsController::class, 'index']);
         $r->get('/conversations/{id:\d+}', [A\ConversationsController::class, 'show']);

@@ -55,10 +55,10 @@ final class Photo
         return self::storeProcessed($userId, $img, $byAdmin);
     }
 
-    public static function storeProcessed(int $userId, array $img, bool $byAdmin = false): int
+    public static function storeProcessed(int $userId, array $img, bool $byAdmin = false, bool $isAi = false): int
     {
         $status = (!$byAdmin && Settings::bool('photo_moderation')) ? 'pending' : 'approved';
-        return DB::transaction(static function () use ($userId, $img, $status) {
+        return DB::transaction(static function () use ($userId, $img, $status, $isAi) {
             $pos = (int) DB::value('SELECT COALESCE(MAX(position), -1) + 1 FROM photos WHERE user_id = ?', [$userId]);
             $id = DB::insert('photos', [
                 'user_id'    => $userId,
@@ -67,11 +67,26 @@ final class Photo
                 'width'      => $img['width'],
                 'height'     => $img['height'],
                 'status'     => $status,
+                'is_ai'      => $isAi ? 1 : 0,
                 'created_at' => now(),
             ]);
             DB::insert('photo_blobs', ['photo_id' => $id, 'data' => $img['data'], 'thumb' => $img['thumb']]);
             return $id;
         });
+    }
+
+    /** Which of these users show at least one AI-generated photo: [userId => true]. */
+    public static function aiUsers(array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_map('intval', $userIds)));
+        if (!$userIds) {
+            return [];
+        }
+        $ids = DB::column(
+            'SELECT DISTINCT user_id FROM photos WHERE user_id IN (' . DB::placeholders($userIds) . ") AND status = 'approved' AND is_ai = 1",
+            $userIds
+        );
+        return array_fill_keys(array_map('intval', $ids), true);
     }
 
     public static function delete(int $photoId): void

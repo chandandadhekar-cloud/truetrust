@@ -51,6 +51,13 @@ $act = static function (string $action, string $label, string $cls = 'btn-outlin
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <?php if ($u['is_seed'] && count($photos) < (int) setting('max_photos')): ?>
+                <form method="post" action="/admin/users/<?= (int) $u['id'] ?>/ai-photos" class="row" style="margin-top:14px;flex-wrap:wrap;gap:8px">
+                    <?= csrf_field() ?>
+                    <select class="select" name="shots" style="width:auto;min-height:40px"><?php for ($i = 1; $i <= 4; $i++): ?><option value="<?= $i ?>"<?= $i === 3 ? ' selected' : '' ?>><?= $i ?> AI photo<?= $i > 1 ? 's' : '' ?></option><?php endfor; ?></select>
+                    <button class="btn btn-outline"><?= icon('sparkle', 18) ?> Generate with AI</button>
+                </form>
+                <?php endif; ?>
                 <?php if (count($photos) < (int) setting('max_photos')): ?>
                 <form method="post" action="/admin/users/<?= (int) $u['id'] ?>/photos" enctype="multipart/form-data" class="row" style="margin-top:14px;flex-wrap:wrap">
                     <?= csrf_field() ?>

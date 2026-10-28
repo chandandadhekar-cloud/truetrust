@@ -8,6 +8,7 @@ use App\Core\DB;
 use App\Core\Request;
 use App\Core\Settings;
 use App\Models\Photo;
+use App\Services\AiPhotos;
 use App\Services\SeedGenerator;
 
 final class SeedController extends AdminController
@@ -27,7 +28,22 @@ final class SeedController extends AdminController
         );
         $byCity = DB::all("SELECT city, COUNT(*) n FROM users WHERE is_seed = 1 AND status <> 'deleted' GROUP BY city ORDER BY n DESC LIMIT 12");
         $recent = DB::all("SELECT id, first_name, last_name, email, is_verified, is_seed, gender, dob, city, job_title FROM users WHERE is_seed = 1 AND status <> 'deleted' ORDER BY id DESC LIMIT 12");
+        $failed = DB::all(
+            "SELECT j.id, j.user_id, j.shot, j.error, u.first_name FROM ai_photo_jobs j JOIN users u ON u.id = j.user_id
+             WHERE j.status = 'failed' ORDER BY j.id DESC LIMIT 10"
+        );
+        $recentAi = DB::all("SELECT j.photo_id, j.user_id, u.first_name FROM ai_photo_jobs j JOIN users u ON u.id = j.user_id WHERE j.status = 'done' AND j.photo_id IS NOT NULL ORDER BY j.id DESC LIMIT 12");
         return $this->render('seed/index', [
+            'ai'       => [
+                'configured' => AiPhotos::configured(),
+                'counts'     => AiPhotos::counts(),
+                'spent'      => AiPhotos::spent(),
+                'budget'     => AiPhotos::budget(),
+                'quality'    => (string) setting('ai_default_quality'),
+                'estimates'  => array_combine(AiPhotos::QUALITIES, array_map(static fn ($q) => AiPhotos::estimate($q), AiPhotos::QUALITIES)),
+                'failed'     => $failed,
+                'recent'     => $recentAi,
+            ],
             'title'   => 'Seed profiles',
             'stats'   => array_map('intval', $stats ?: []),
             'byCity'  => $byCity,
@@ -93,6 +109,66 @@ final class SeedController extends AdminController
         AdminAuth::log('seed.photos', null, null, "{$done} photos to {$gender} profiles");
         flash($failed ? 'error' : 'success', "{$done} photos added to " . min(count($targets), (int) ceil($done / $per)) . ' profiles.' . ($failed ? " {$failed} files could not be read." : ''));
         redirect('/admin/seed');
+    }
+
+    /** Queues AI photos for seed profiles that have no photos yet. */
+    public function aiQueue(): void
+    {
+        if (!AiPhotos::configured()) {
+            flash('error', 'Add your OpenAI API key in Settings first.');
+            redirect('/admin/settings#ai');
+        }
+        $gender = Request::str('gender');
+        $limit = max(1, min(200, Request::int('profiles', 5)));
+        $where = "is_seed = 1 AND status <> 'deleted' AND NOT EXISTS (SELECT 1 FROM photos p WHERE p.user_id = users.id)
+                  AND NOT EXISTS (SELECT 1 FROM ai_photo_jobs j WHERE j.user_id = users.id AND j.status IN ('queued','running'))";
+        $params = [];
+        if (in_array($gender, ['man', 'woman'], true)) {
+            $where .= ' AND gender = ?';
+            $params[] = $gender;
+        }
+        $ids = DB::column("SELECT id FROM users WHERE {$where} ORDER BY id LIMIT {$limit}", $params);
+        $n = AiPhotos::queue($ids, Request::int('shots', 3), Request::str('quality', setting('ai_default_quality')));
+        AdminAuth::log('ai_photos.queue', null, null, "{$n} profiles");
+        flash($n ? 'success' : 'error', $n ? "Queued {$n} profiles. Press Start to generate." : 'No seed profiles without photos match. Generate more profiles first.');
+        redirect('/admin/seed#ai');
+    }
+
+    /** Queues AI photos for one seed profile (from its admin page). */
+    public function aiQueueOne(int $id): void
+    {
+        if (!AiPhotos::configured()) {
+            flash('error', 'Add your OpenAI API key in Settings first.');
+            redirect('/admin/settings#ai');
+        }
+        $n = AiPhotos::queue([$id], Request::int('shots', 3), Request::str('quality', setting('ai_default_quality')));
+        flash($n ? 'success' : 'error', $n ? 'Queued. Press Start to generate.' : 'Only seed profiles without a pending queue can get AI photos.');
+        redirect('/admin/seed#ai');
+    }
+
+    /** Generates one image. Called repeatedly by the browser while the runner is on. */
+    public function aiRun(): string
+    {
+        ignore_user_abort(true);
+        @set_time_limit(240);
+        return json(['ok' => true] + AiPhotos::runNext());
+    }
+
+    public function aiStatus(): string
+    {
+        return json(['ok' => true, 'counts' => AiPhotos::counts(), 'spent' => AiPhotos::spent(), 'budget' => AiPhotos::budget()]);
+    }
+
+    public function aiManage(): void
+    {
+        if (Request::str('do') === 'retry') {
+            $n = AiPhotos::retryFailed();
+            flash('success', "{$n} failed photos queued again.");
+        } else {
+            $n = AiPhotos::clearQueue();
+            flash('success', "{$n} queued or failed photos removed.");
+        }
+        redirect('/admin/seed#ai');
     }
 
     public function purge(): void

@@ -55,6 +55,55 @@ usort($list, static fn ($a, $b) => strcmp($a[0], $b[0]));
     </form>
 </div>
 
+<div class="panel" id="ai" style="margin-top:18px" data-ai-runner data-pending="<?= (int) ($ai['counts']['queued'] + $ai['counts']['running']) ?>">
+    <div class="panel-h">
+        <h2>AI photos</h2>
+        <span class="muted small">Spent $<span data-ai-spent><?= number_format($ai['spent'], 2) ?></span> of $<?= number_format($ai['budget'], 2) ?> cap · <a class="link" href="/admin/settings#ai">settings</a></span>
+    </div>
+    <?php if (!$ai['configured']): ?>
+        <div class="panel-b"><div class="notice"><?= icon('info', 18) ?><span>Add your OpenAI API key in <a class="link" href="/admin/settings#ai">Settings → AI photos</a> to generate photos for seed profiles.</span></div></div>
+    <?php else: ?>
+    <div class="panel-b">
+        <div class="grid-2" style="align-items:start">
+            <form method="post" action="/admin/seed/ai/queue" data-submit-once>
+                <?= csrf_field() ?>
+                <p class="muted small" style="margin-bottom:14px">Creates photos for seed profiles that have none. The first photo defines the person; the rest reuse that face. Members see an "AI-generated photos" label on these profiles.</p>
+                <div class="form-grid">
+                    <label class="field"><span>Profiles</span><input class="input" type="number" name="profiles" value="5" min="1" max="200"></label>
+                    <label class="field"><span>Gender</span><select class="select" name="gender"><option value="">Any</option><option value="woman">Women</option><option value="man">Men</option></select></label>
+                    <label class="field"><span>Photos per profile</span><select class="select" name="shots"><?php for ($i = 1; $i <= 4; $i++): ?><option<?= $i === 3 ? ' selected' : '' ?>><?= $i ?></option><?php endfor; ?></select></label>
+                    <label class="field"><span>Quality</span><select class="select" name="quality"><?php foreach ($ai['estimates'] as $q => $cost): ?><option value="<?= $q ?>"<?= selected($ai['quality'], $q) ?>><?= ucfirst($q) ?> · ~$<?= number_format($cost, 3) ?>/photo</option><?php endforeach; ?></select></label>
+                </div>
+                <button class="btn btn-outline"><?= icon('plus', 18) ?> Add to queue</button>
+            </form>
+            <div>
+                <div class="ai-counts">
+                    <div><b data-ai-count="queued"><?= $ai['counts']['queued'] + $ai['counts']['running'] ?></b><span>Waiting</span></div>
+                    <div><b data-ai-count="done"><?= $ai['counts']['done'] ?></b><span>Created</span></div>
+                    <div><b data-ai-count="failed"><?= $ai['counts']['failed'] ?></b><span>Failed</span></div>
+                </div>
+                <div class="ai-bar"><i data-ai-bar></i></div>
+                <p class="small muted" data-ai-msg style="min-height:20px;margin:8px 0 12px">Each photo takes about 20–60 seconds. Keep this tab open while it runs.</p>
+                <div class="row" style="flex-wrap:wrap">
+                    <button type="button" class="btn btn-dark" data-ai-start><?= icon('zap', 18) ?> Start</button>
+                    <button type="button" class="btn btn-outline hidden" data-ai-stop>Pause</button>
+                    <?php if ($ai['counts']['failed']): ?><form method="post" action="/admin/seed/ai/manage"><?= csrf_field() ?><input type="hidden" name="do" value="retry"><button class="btn btn-ghost btn-xs">Retry failed</button></form><?php endif; ?>
+                    <?php if ($ai['counts']['queued'] || $ai['counts']['failed']): ?><form method="post" action="/admin/seed/ai/manage" data-confirm="Remove all waiting and failed photos from the queue?"><?= csrf_field() ?><input type="hidden" name="do" value="clear"><button class="btn btn-ghost btn-xs">Clear queue</button></form><?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <div class="ai-strip" data-ai-strip>
+            <?php foreach ($ai['recent'] as $r): ?><a href="/admin/users/<?= (int) $r['user_id'] ?>" title="<?= e($r['first_name']) ?>"><img src="<?= photo_url((int) $r['photo_id'], 'thumb') ?>" alt="" loading="lazy"></a><?php endforeach; ?>
+        </div>
+        <?php if ($ai['failed']): ?>
+            <div style="margin-top:14px">
+                <?php foreach ($ai['failed'] as $f): ?><p class="small" style="padding:4px 0"><span class="tag tag-bad">Failed</span> <a class="link" href="/admin/users/<?= (int) $f['user_id'] ?>"><?= e($f['first_name']) ?></a> photo <?= (int) $f['shot'] + 1 ?>: <?= e($f['error']) ?></p><?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+</div>
+
 <div class="grid-side" style="margin-top:18px">
     <div class="panel">
         <div class="panel-h"><h2>Latest seed profiles</h2></div>
@@ -98,3 +147,4 @@ usort($list, static fn ($a, $b) => strcmp($a[0], $b[0]));
         </div>
     </div>
 </div>
+<script src="<?= asset('js/admin-ai.js') ?>" defer></script>

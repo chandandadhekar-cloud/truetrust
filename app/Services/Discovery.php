@@ -20,8 +20,9 @@ final class Discovery
     {
         $rows = self::query($me, $limit, $exclude);
         $photos = Photo::idsForMany(array_column($rows, 'id'));
-        return array_map(static function ($u) use ($me, $photos) {
-            $card = User::card($u, $me, $photos[(int) $u['id']] ?? []);
+        $ai = Photo::aiUsers(array_column($rows, 'id'));
+        return array_map(static function ($u) use ($me, $photos, $ai) {
+            $card = User::card($u, $me, $photos[(int) $u['id']] ?? [], isset($ai[(int) $u['id']]));
             $card['liked_you'] = (bool) $u['liked_me'];
             $card['superliked_you'] = $u['liked_me_action'] === 'superlike';
             return $card;
