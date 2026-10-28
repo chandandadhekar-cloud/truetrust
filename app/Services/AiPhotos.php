@@ -54,12 +54,15 @@ final class AiPhotos
     /** Image models offered in Settings: the ones found on the key by Check connection, else defaults. */
     public static function models(): array
     {
-        $found = array_filter(explode(',', (string) Settings::get('ai_models_available', '')));
-        $list = $found ?: ['gpt-image-1.5', 'gpt-image-1-mini'];
+        $found = array_values(array_filter(explode(',', (string) Settings::get('ai_models_available', ''))));
+        if ($found) {
+            return $found;  // tested by Check connection: only models the key may use
+        }
+        $list = ['gpt-image-1.5', 'gpt-image-1-mini', 'gpt-image-2'];
         if (!in_array(self::model(), $list, true)) {
             $list[] = self::model();
         }
-        return array_values(array_unique($list));
+        return $list;
     }
 
     /** Only gpt-image-1 is known to accept input_fidelity; other models get the plain edit. */
@@ -171,6 +174,15 @@ final class AiPhotos
                 // Account-level problems: put the job back and stop the run.
                 if (in_array($code, [401, 403, 429], true) || $code >= 500 || $code === 0) {
                     DB::query("UPDATE ai_photo_jobs SET status = 'queued', started_at = NULL WHERE id = ?", [$job['id']]);
+                    // Model not allowed for this key: pick one that is, and let the runner carry on.
+                    if ($code === 403 && strpos($e->getMessage(), "can't use the model") !== false) {
+                        $before = self::model();
+                        $check = self::checkConnection();
+                        if ($check['ok'] && $check['model'] !== $before) {
+                            return self::result('retry', "{$before} isn't allowed for your OpenAI project. Switched to {$check['model']} and continuing.");
+                        }
+                        return self::result('stopped', $check['message']);
+                    }
                     return self::result('stopped', $e->getMessage());
                 }
                 self::fail((int) $job['id'], $e->getMessage());
