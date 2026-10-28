@@ -47,15 +47,15 @@ final class AiPhotos
 
     public static function model(): string
     {
-        $m = trim((string) Settings::get('openai_image_model', 'gpt-image-1'));
-        return preg_match('/^[a-z0-9][a-z0-9.\-]{2,60}$/', $m) ? $m : 'gpt-image-1';
+        $m = trim((string) Settings::get('openai_image_model', 'gpt-image-1.5'));
+        return preg_match('/^[a-z0-9][a-z0-9.\-]{2,60}$/', $m) ? $m : 'gpt-image-1.5';
     }
 
     /** Image models offered in Settings: the ones found on the key by Check connection, else defaults. */
     public static function models(): array
     {
         $found = array_filter(explode(',', (string) Settings::get('ai_models_available', '')));
-        $list = $found ?: ['gpt-image-1', 'gpt-image-1-mini'];
+        $list = $found ?: ['gpt-image-1.5', 'gpt-image-1-mini'];
         if (!in_array(self::model(), $list, true)) {
             $list[] = self::model();
         }
@@ -365,32 +365,36 @@ final class AiPhotos
         } catch (\RuntimeException $e) {
             return ['ok' => false, 'message' => $e->getMessage(), 'models' => [], 'model' => self::model()];
         }
-        $models = array_values(array_filter(array_column($list, 'id'), static fn ($id) => strpos($id, 'image') !== false && strpos($id, 'chatgpt') !== 0));
-        sort($models);
-        Settings::set('ai_models_available', implode(',', $models));
-        if (!$models) {
-            return ['ok' => false, 'message' => 'This key has no image models. In the OpenAI dashboard, allow image models for the key\'s project, or verify your organization.', 'models' => [], 'model' => self::model()];
+        $listed = array_values(array_filter(array_column($list, 'id'), static fn ($id) => strpos($id, 'image') !== false && strpos($id, 'chatgpt') !== 0));
+        if (!$listed) {
+            Settings::set('ai_models_available', '');
+            return ['ok' => false, 'message' => 'This key has no image models. In the OpenAI dashboard, allow an image model (for example gpt-image-1.5) for the key\'s project.', 'models' => [], 'model' => self::model()];
         }
 
-        $candidates = array_values(array_unique(array_merge([self::model()], array_intersect(self::PREFERRED, $models))));
+        // The listing includes models a project may block, so test each one (free).
+        $usable = [];
         $problems = [];
-        foreach ($candidates as $m) {
+        foreach ($listed as $m) {
             $why = self::probe($m);
             if ($why === null) {
-                $switched = $m !== self::model();
-                Settings::set('openai_image_model', $m);
-                return [
-                    'ok'      => true,
-                    'message' => $switched
-                        ? "Connected. Switched to {$m} because the previous model isn't available to this key (" . reset($problems) . ').'
-                        : "Connected. {$m} is ready to use.",
-                    'models'  => $models,
-                    'model'   => $m,
-                ];
+                $usable[] = $m;
+            } else {
+                $problems[$m] = str_replace(' Open Settings → AI photos and press Check connection.', '', $why);
             }
-            $problems[$m] = str_replace(' Open Settings → AI photos and press Check connection.', '', $why);
         }
-        return ['ok' => false, 'message' => 'The key works but cannot use an image model: ' . reset($problems), 'models' => $models, 'model' => self::model()];
+        sort($usable);
+        Settings::set('ai_models_available', implode(',', $usable));
+        if (!$usable) {
+            return ['ok' => false, 'message' => 'The key works but none of its image models are allowed: ' . reset($problems), 'models' => [], 'model' => self::model()];
+        }
+
+        $current = self::model();
+        $pick = in_array($current, $usable, true) ? $current : (array_values(array_intersect(self::PREFERRED, $usable))[0] ?? $usable[0]);
+        Settings::set('openai_image_model', $pick);
+        $note = $pick === $current
+            ? "Connected. {$pick} is ready to use."
+            : "Connected. Switched to {$pick}: {$current} isn't allowed for this key.";
+        return ['ok' => true, 'message' => $note . ' Usable models: ' . implode(', ', $usable) . '.', 'models' => $usable, 'model' => $pick];
     }
 
     /** Returns null when the model is usable, otherwise the reason. Never generates an image. */

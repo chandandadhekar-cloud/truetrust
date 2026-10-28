@@ -38,7 +38,7 @@ final class Settings
         'smtp_pass'              => '',
         'smtp_secure'            => 'tls',
         'openai_api_key'         => '',
-        'openai_image_model'     => 'gpt-image-1',
+        'openai_image_model'     => 'gpt-image-1.5',
         'ai_default_quality'     => 'medium',
         'ai_budget_usd'          => '3',
         'ai_spent_usd'           => '0',
