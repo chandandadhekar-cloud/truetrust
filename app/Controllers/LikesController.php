@@ -22,7 +22,7 @@ final class LikesController extends Controller
             'nav'      => true,
             'people'   => $rows,
             'photos'   => $photos,
-            'ai'       => Photo::aiUsers(array_column($rows, 'id')),
+            'ai'       => Photo::showAiLabel($me) ? Photo::aiUsers(array_column($rows, 'id')) : [],
             'newCount' => $newCount,
         ]);
     }

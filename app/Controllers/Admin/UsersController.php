@@ -22,6 +22,8 @@ final class UsersController extends AdminController
         'unspotlight' => ['is_spotlight', 0, 'Exclusive spotlight off'],
         'hide'        => ['is_hidden', 1, 'Hidden from Discover'],
         'unhide'      => ['is_hidden', 0, 'Visible in Discover'],
+        'tester'      => ['is_tester', 1, 'Marked as a tester account'],
+        'untester'    => ['is_tester', 0, 'No longer a tester account'],
     ];
 
     public function index(): string
@@ -38,7 +40,7 @@ final class UsersController extends AdminController
         $order = $sorts[Request::str('sort')] ?? $sorts['newest'];
         $users = DB::all(
             "SELECT u.id, u.email, u.first_name, u.last_name, u.gender, u.dob, u.city, u.status, u.is_seed, u.is_verified,
-                    u.is_featured, u.is_spotlight, u.is_hidden, u.onboarded_at, u.last_active_at, u.created_at,
+                    u.is_featured, u.is_spotlight, u.is_hidden, u.is_tester, u.onboarded_at, u.last_active_at, u.created_at,
                     (SELECT COUNT(*) FROM photos p WHERE p.user_id = u.id AND p.status <> 'rejected') AS photo_count,
                     (SELECT COUNT(*) FROM reports r WHERE r.reported_id = u.id) AS report_count
              FROM users u WHERE {$where} ORDER BY {$order} LIMIT {$p['per']} OFFSET {$p['offset']}",

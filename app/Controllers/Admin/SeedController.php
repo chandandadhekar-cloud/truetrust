@@ -43,6 +43,8 @@ final class SeedController extends AdminController
                 'estimates'  => array_combine(AiPhotos::QUALITIES, array_map(static fn ($q) => AiPhotos::estimate($q), AiPhotos::QUALITIES)),
                 'failed'     => $failed,
                 'recent'     => $recentAi,
+                'mode'       => (string) setting('ai_profiles_mode'),
+                'testers'    => (int) DB::value("SELECT COUNT(*) FROM users WHERE is_tester = 1 AND status = 'active'"),
             ],
             'title'   => 'Seed profiles',
             'stats'   => array_map('intval', $stats ?: []),
@@ -152,6 +154,17 @@ final class SeedController extends AdminController
         ignore_user_abort(true);
         @set_time_limit(240);
         return json(['ok' => true] + AiPhotos::runNext());
+    }
+
+    public function aiMode(): void
+    {
+        $mode = Request::str('mode') === 'test' ? 'test' : 'live';
+        \App\Core\Settings::set('ai_profiles_mode', $mode);
+        AdminAuth::log('ai_photos.mode', null, null, $mode);
+        flash('success', $mode === 'test'
+            ? 'Test mode on: AI-photo profiles are shown only to tester accounts, without the label.'
+            : 'Live mode on: AI-photo profiles are shown to everyone, with the AI label.');
+        redirect('/admin/seed#ai');
     }
 
     public function aiStatus(): string

@@ -22,6 +22,9 @@ final class ProfileController extends Controller
         if (!$u || (!$self && ($u['status'] !== 'active' || !$u['onboarded_at'] || $u['is_hidden'] && !MatchModel::between((int) $me['id'], $id) || Block::between((int) $me['id'], $id)))) {
             abort(404, 'This profile is no longer available.');
         }
+        if (!$self && !Photo::canSeeAi($me) && Photo::hasAi($id)) {
+            abort(404, 'This profile is no longer available.');
+        }
         $match = MatchModel::between((int) $me['id'], $id);
         $mySwipe = DB::value('SELECT action FROM swipes WHERE user_id = ? AND target_id = ?', [$me['id'], $id]);
         $theyLiked = DB::value("SELECT action FROM swipes WHERE user_id = ? AND target_id = ? AND action IN ('like','superlike')", [$id, $me['id']]);

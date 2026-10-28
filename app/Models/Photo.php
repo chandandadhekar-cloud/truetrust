@@ -89,6 +89,30 @@ final class Photo
         return array_fill_keys(array_map('intval', $ids), true);
     }
 
+    /**
+     * Test mode: AI-photo profiles are shown only to tester accounts, without
+     * the label. Live mode: shown to everyone, always labelled.
+     */
+    public static function aiTestMode(): bool
+    {
+        return Settings::get('ai_profiles_mode') === 'test';
+    }
+
+    public static function canSeeAi(?array $viewer): bool
+    {
+        return !self::aiTestMode() || ($viewer && !empty($viewer['is_tester']));
+    }
+
+    public static function showAiLabel(?array $viewer): bool
+    {
+        return !(self::aiTestMode() && $viewer && !empty($viewer['is_tester']));
+    }
+
+    public static function hasAi(int $userId): bool
+    {
+        return isset(self::aiUsers([$userId])[$userId]);
+    }
+
     public static function delete(int $photoId): void
     {
         DB::query('DELETE FROM photos WHERE id = ?', [$photoId]);

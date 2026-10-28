@@ -27,3 +27,8 @@
     navigator.clipboard && navigator.clipboard.writeText(b.getAttribute('data-copy')).then(function () { window.TT.toast('Copied', 'success'); });
   });
 })();
+
+// Radio groups that save as soon as an option is picked.
+document.addEventListener('change', function (e) {
+  if (e.target.matches('[data-autosubmit-radio]')) e.target.form.submit();
+});

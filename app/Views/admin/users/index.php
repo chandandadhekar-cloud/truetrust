@@ -57,6 +57,7 @@ $g = static fn ($k) => e($_GET[$k] ?? '');
                         <?php if ($u['is_featured']): ?><span class="tag tag-brand">Boosted</span><?php endif; ?>
                         <?php if ($u['is_spotlight']): ?><span class="tag tag-brand">Spotlight</span><?php endif; ?>
                         <?php if ($u['is_hidden']): ?><span class="tag">Hidden</span><?php endif; ?>
+                        <?php if ($u['is_tester']): ?><span class="tag tag-sky">Tester</span><?php endif; ?>
                         <?php if ($u['report_count']): ?><span class="tag tag-bad"><?= (int) $u['report_count'] ?> reports</span><?php endif; ?>
                     </div></td>
                     <td class="num"><?= (int) $u['photo_count'] ?: '<span class="tag tag-warn">0</span>' ?></td>

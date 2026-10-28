@@ -19,6 +19,7 @@ $act = static function (string $action, string $label, string $cls = 'btn-outlin
             <?php if ($u['is_featured']): ?><span class="tag tag-brand">Boosted</span><?php endif; ?>
             <?php if ($u['is_spotlight']): ?><span class="tag tag-brand">Exclusive spotlight</span><?php endif; ?>
             <?php if ($u['is_hidden']): ?><span class="tag">Hidden</span><?php endif; ?>
+            <?php if (!empty($u['is_tester'])): ?><span class="tag tag-sky">Tester</span><?php endif; ?>
             <?php if (!$u['onboarded_at']): ?><span class="tag tag-warn">Onboarding not finished</span><?php endif; ?>
             <?php if ($u['email_verified_at']): ?><span class="tag tag-ok">Email confirmed</span><?php else: ?><span class="tag">Email not confirmed</span><?php endif; ?>
         </div>
@@ -101,8 +102,9 @@ $act = static function (string $action, string $label, string $cls = 'btn-outlin
                     <?= $u['is_featured'] ? $act('unfeature', 'Remove boost') : $act('feature', 'Boost to top') ?>
                     <?= $u['is_spotlight'] ? $act('unspotlight', 'End spotlight') : $act('spotlight', 'Exclusive spotlight', 'btn-outline', 'While any profile is in exclusive spotlight, members see ONLY spotlight profiles in Discover. Continue?') ?>
                     <?= $u['is_hidden'] ? $act('unhide', 'Show in Discover') : $act('hide', 'Hide from Discover') ?>
+                    <?php if (!$u['is_seed']): ?><?= $u['is_tester'] ? $act('untester', 'Remove tester') : $act('tester', 'Make tester') ?><?php endif; ?>
                 </div>
-                <p class="hint" style="margin-top:12px"><b>Boost</b> puts this profile first in everyone's Discover. <b>Exclusive spotlight</b> shows only spotlight profiles to everyone.</p>
+                <p class="hint" style="margin-top:12px"><b>Tester</b> accounts can see AI-photo profiles when AI photos are in test mode. <b>Boost</b> puts this profile first in everyone's Discover. <b>Exclusive spotlight</b> shows only spotlight profiles to everyone.</p>
             </div>
         </div>
 

@@ -60,6 +60,13 @@ usort($list, static fn ($a, $b) => strcmp($a[0], $b[0]));
         <h2>AI photos</h2>
         <span class="muted small">Spent $<span data-ai-spent><?= number_format($ai['spent'], 2) ?></span> of $<?= number_format($ai['budget'], 2) ?> cap · <a class="link" href="/admin/settings#ai">settings</a></span>
     </div>
+    <form method="post" action="/admin/seed/ai/mode" class="ai-mode">
+        <?= csrf_field() ?>
+        <span class="label" style="margin:0">Who sees AI-photo profiles</span>
+        <label class="ai-mode-opt"><input type="radio" name="mode" value="live"<?= checked($ai['mode'] !== 'test') ?> data-autosubmit-radio><span><b>Everyone, with AI label</b><small>Live: real members see these profiles marked "AI-generated photos".</small></span></label>
+        <label class="ai-mode-opt"><input type="radio" name="mode" value="test"<?= checked($ai['mode'] === 'test') ?> data-autosubmit-radio><span><b>Test accounts only, no label</b><small>Hidden from real members. <?= $ai['testers'] ? plural($ai['testers'], 'tester account') . ' can see them.' : 'No tester accounts yet: mark one on its member page.' ?></small></span></label>
+        <noscript><button class="btn btn-dark btn-xs">Save</button></noscript>
+    </form>
     <?php if (!$ai['configured']): ?>
         <div class="panel-b"><div class="notice"><?= icon('info', 18) ?><span>Add your OpenAI API key in <a class="link" href="/admin/settings#ai">Settings → AI photos</a> to generate photos for seed profiles.</span></div></div>
     <?php else: ?>

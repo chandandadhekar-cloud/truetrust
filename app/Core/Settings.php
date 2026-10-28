@@ -42,6 +42,7 @@ final class Settings
         'ai_default_quality'     => 'medium',
         'ai_budget_usd'          => '3',
         'ai_spent_usd'           => '0',
+        'ai_profiles_mode'       => 'live',
     ];
 
     private static ?array $values = null;

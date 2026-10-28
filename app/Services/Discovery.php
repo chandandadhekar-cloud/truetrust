@@ -20,7 +20,7 @@ final class Discovery
     {
         $rows = self::query($me, $limit, $exclude);
         $photos = Photo::idsForMany(array_column($rows, 'id'));
-        $ai = Photo::aiUsers(array_column($rows, 'id'));
+        $ai = Photo::showAiLabel($me) ? Photo::aiUsers(array_column($rows, 'id')) : [];
         return array_map(static function ($u) use ($me, $photos, $ai) {
             $card = User::card($u, $me, $photos[(int) $u['id']] ?? [], isset($ai[(int) $u['id']]));
             $card['liked_you'] = (bool) $u['liked_me'];
@@ -70,6 +70,9 @@ final class Discovery
 
         if (!Settings::bool('show_seed_profiles')) {
             $sql .= ' AND u.is_seed = 0';
+        }
+        if (!Photo::canSeeAi($me)) {
+            $sql .= ' AND NOT EXISTS (SELECT 1 FROM photos px WHERE px.user_id = u.id AND px.is_ai = 1)';
         }
         if (Settings::bool('require_photo')) {
             $sql .= " AND EXISTS (SELECT 1 FROM photos p WHERE p.user_id = u.id AND p.status = 'approved')";

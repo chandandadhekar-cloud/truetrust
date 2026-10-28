@@ -100,7 +100,8 @@ final class User
     public static function card(array $u, ?array $viewer = null, ?array $photoIds = null, ?bool $ai = null): array
     {
         $photoIds ??= Photo::idsFor((int) $u['id'], true);
-        $ai ??= isset(Photo::aiUsers([(int) $u['id']])[(int) $u['id']]);
+        $ai ??= Photo::hasAi((int) $u['id']);
+        $ai = $ai && Photo::showAiLabel($viewer);
         $km = $viewer ? self::distanceKm(
             $viewer['lat'] !== null ? (float) $viewer['lat'] : null,
             $viewer['lng'] !== null ? (float) $viewer['lng'] : null,

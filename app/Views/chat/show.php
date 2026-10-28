@@ -27,7 +27,7 @@ $online = is_online($other['last_active_at']);
             <a href="/u/<?= (int) $other['id'] ?>" class="avatar"><?php if ($photo): ?><img src="<?= photo_url($photo, 'thumb') ?>" alt=""><?php else: ?><?= e(initials($other['first_name'])) ?><?php endif; ?></a>
             <h3>You matched with <?= e($other['first_name']) ?></h3>
             <p><?= e(date('j F Y', strtotime($match['created_at']))) ?></p>
-            <?php if (App\Models\Photo::aiUsers([(int) $other['id']])): ?><p class="ai-note" style="justify-content:center"><?= icon('sparkle', 15) ?>This profile's photos are AI-generated.</p><?php endif; ?>
+            <?php if (App\Models\Photo::showAiLabel(me()) && App\Models\Photo::hasAi((int) $other['id'])): ?><p class="ai-note" style="justify-content:center"><?= icon('sparkle', 15) ?>This profile's photos are AI-generated.</p><?php endif; ?>
             <div class="icebreakers" data-icebreakers>
                 <?php foreach (array_slice($ice, 0, 3) as $line): ?><button type="button"><?= e($line) ?></button><?php endforeach; ?>
             </div>

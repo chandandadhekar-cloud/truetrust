@@ -162,3 +162,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .ai-bar i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .4s; }
 .ai-strip { display: flex; gap: 8px; overflow-x: auto; margin-top: 16px; }
 .ai-strip img { width: 72px; height: 96px; object-fit: cover; border-radius: 10px; flex: none; }
+.ai-mode { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.ai-mode-opt { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; border-radius: 12px; background: var(--surface); border: 1.5px solid var(--line); cursor: pointer; flex: 1; min-width: 240px; }
+.ai-mode-opt:has(input:checked) { border-color: var(--ink); }
+.ai-mode-opt input { margin-top: 3px; accent-color: var(--brand); }
+.ai-mode-opt b { display: block; font-size: 14px; }
+.ai-mode-opt small { color: var(--muted); font-size: 12.5px; }
